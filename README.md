@@ -51,6 +51,26 @@
 
   * buyerid - 买家ID，类型为String
 
+## 提示
+
+* 数据量上，商品文件和买家文件总大小大于4G，订单文件总大小小于100G。
+* 数据中的某些字段比较稀有，在所有记录中出现较少。某些字段比较常见，在记录中经常出现
+
+
+# 查询条件
+
+一共有四种类型的查询：
+
+1. queryOrder，查询指定订单号的交易信息，可以指定要查询的列
+1. queryOrdersByBuyer，查询买家某个时间范围内的交易信息
+1. queryOrdersBySaler，查询卖家某个商品的交易信息，可以指定要查询的列
+1. sumOrdersByGood，对商品的某个字段进行求和
+
+## 提示
+
+* queryOrder和queryOrdersBySaler两种查询大部分情况下只查询少量字段
+* 查询可能存在热点
+
 # 程序打包
 
 程序的类名一定为OrderSystemImpl，并实现一个不带参数的OrderSystemImpl构造函数，提供public访问权限。
@@ -58,8 +78,8 @@ Pom配置请参考git中的demo项目[OrderSystemImpl](https://code.aliyun.com/M
 
 ## 第二/三方库规约
 
-* 允许使用JavaSE 7 所包含的所有lib
-* 允许使用经过批准的数据结构、I/O，并发控制相关的三方库。请在正式提交代码前联系 @那珂 (旺旺) 确认
+* 仅允许依赖JavaSE 7 包含的lib
+* 可以借鉴优秀的三方库，避免重复造轮子
 
 # 测试环境
 
