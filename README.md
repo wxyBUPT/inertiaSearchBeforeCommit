@@ -4,7 +4,7 @@
 实现一些简单的订单查询功能。
 
 * construct接口负责将数据文件路径传送到OrderSystemImpl中，其中storeFolders每个路径包含一块存储设备。用于供你存储内存外的数据。
-* queryOrder, queryOrdersByBuyer, queryOrdersBySaler， sumOrdersByGood提供按照特定方式查询数据的接口 
+* queryOrder、queryOrdersByBuyer、queryOrdersBySaler、sumOrdersByGood提供按照特定方式查询数据的接口，具体规则可以查看OrderSystem.java的注释部分
 
 
 # 数据格式
@@ -54,8 +54,7 @@
 # 程序打包
 
 程序的类名一定为OrderSystemImpl，并实现一个不带参数的OrderSystemImpl构造函数，提供public访问权限。
-Pom配置请参考git中的demo项目OrderSystemImpl
-使用预定义的打包插件
+Pom配置请参考git中的demo项目[OrderSystemImpl](https://code.aliyun.com/MiddlewareRace/order-system-impl/tree/master)，使用预定义的打包插件。
 
 ## 第二/三方库规约
 
@@ -84,4 +83,4 @@ Pom配置请参考git中的demo项目OrderSystemImpl
 
 程序运行失败时，我们会给出失败的具体原因以及屏幕输出信息，供选手排查。
 
-由于测试评分进行多天，选手的得分会有起伏，我们会记录得分最高的一次作为最后成绩。取得好成绩后，可以大胆的对程序进行优化，博取更好的表现。
+由于测试评分进行多天，选手的得分可能会有起伏，我们会记录得分最高的一次作为最后成绩。取得好成绩后，可以大胆的对程序继续优化，博取更好的表现。
