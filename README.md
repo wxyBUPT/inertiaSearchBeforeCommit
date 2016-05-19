@@ -79,7 +79,6 @@ Pom配置请参考git中的demo项目[OrderSystemImpl](https://code.aliyun.com/M
 ## 第二/三方库规约
 
 * 仅允许依赖JavaSE 7 包含的lib
-* 可以借鉴优秀的三方库，避免重复造轮子
 
 # 测试环境
 
