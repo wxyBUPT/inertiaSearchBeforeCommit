@@ -1,9 +1,14 @@
 package com.alibaba.middleware.race.cache;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * Created by xiyuanbupt on 7/14/16.
+ *
  */
-public class AvlTree<T extends Comparable<? super T>> {
+public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
+
     public AvlNode<T> root;
 
     // TODO: make these optional based on some sort of 'debug' flag?
@@ -11,61 +16,78 @@ public class AvlTree<T extends Comparable<? super T>> {
     public int countInsertions;
     public int countSingleRotations;
     public int countDoubleRotations;
-    public AvlTree(){
+
+    /**
+     * Avl Tree Constructor.
+     *
+     * Creates an empty tree
+     */
+    public AvlTree (){
         root = null;
         countInsertions = 0;
         countSingleRotations = 0;
         countDoubleRotations = 0;
     }
     /**
-     * Determine the height of the given node.
-     */
-    public int height(AvlNode<T> t){
-        return t == null ? -1:t.height;
-    }
-    /**
      * Find the maximum value among the given numbers.
+     *
+     * @param a First number
+     * @param b Second number
+     * @return Maximum value
      */
-    public int max(int a, int b){
-        if(a>b)return a;
+    public int max (int a, int b){
+        if (a > b)
+            return a;
         return b;
     }
 
     /**
      * Insert an element into the tree.
+     *
+     * @param x Element to insert into the tree
+     * @return True - Success, the Element was added.
+     *         False - Error, the element was a duplicate.
      */
-    public boolean insert(T x){
-        try{
-            root = insert(x,root);
+    public boolean insert (T x){
+        try {
+            root = insert (x, root,null);
 
-            countInsertions ++;
+            countInsertions++;
             return true;
-        }catch (Exception e){
+        } catch(Exception e){ // TODO: catch a DuplicateValueException instead!
             return false;
         }
     }
     /**
      * Internal method to perform an actual insertion.
+     *
+     * @param x Element to add
+     * @param t Root of the tree
+     * @return New root of the tree
+     * @throws Exception
      */
-    protected AvlNode<T> insert(T x,AvlNode<T> t)throws Exception{
-        if(t==null)
+    protected AvlNode<T> insert (T x, AvlNode<T> t,AvlNode<T> parent) throws Exception{
+        if (t == null) {
             t = new AvlNode<T>(x);
-        else if(x.compareTo(t.element)<0){
-            t.left = insert(x,t.left);
+            t.parent = parent;
+        }
+        else if (x.compareTo (t.element) < 0){
+            t.left = insert (x, t.left,t);
 
-            if(height(t.left) - height(t.right) == 2){
-                if(x.compareTo(t.left.element)<0){
-                    t = rotateWithLeftChild(t);
-                    countSingleRotations ++;
+            if (height (t.left) - height (t.right) == 2){
+                if (x.compareTo (t.left.element) < 0){
+                    t = rotateWithLeftChild (t);
+                    countSingleRotations++;
                 }
                 else {
-                    t = doubleWithLeftChild(t);
-                    countDoubleRotations ++;
+                    t = doubleWithLeftChild (t);
+                    countDoubleRotations++;
                 }
             }
         }
-        else if(x.compareTo(t.element)>0){
-            t.right = insert(x,t.right);
+        else if (x.compareTo (t.element) > 0){
+            t.right = insert (x, t.right,t);
+
             if ( height (t.right) - height (t.left) == 2)
                 if (x.compareTo (t.right.element) > 0){
                     t = rotateWithRightChild (t);
@@ -79,16 +101,25 @@ public class AvlTree<T extends Comparable<? super T>> {
         else {
             throw new Exception("Attempting to insert duplicate value");
         }
-        t.height = max(height(t.left),height(t.right)) +1;
+
+        t.height = max (height (t.left), height (t.right)) + 1;
         return t;
     }
-
     /**
      * Rotate binary tree node with left child.
-     * Update heights, then return new root
+     * For AVL trees, this is a single rotation for case 1.
+     * Update heights, then return new root.
+     *
+     * @param k2 Root of tree we are rotating
+     * @return New root
      */
-    protected AvlNode<T> rotateWithLeftChild(AvlNode<T> k2){
+    protected AvlNode<T> rotateWithLeftChild (AvlNode<T> k2){
         AvlNode<T> k1 = k2.left;
+        k1.parent = k2.parent;
+        k2.parent = k1;
+        if(k1.right != null) {
+            k1.right.parent = k2;
+        }
 
         k2.left = k1.right;
         k1.right = k2;
@@ -98,6 +129,7 @@ public class AvlTree<T extends Comparable<? super T>> {
 
         return (k1);
     }
+
     /**
      * Double rotate binary tree node: first left child
      * with its right child; then node k3 with new left child.
@@ -108,7 +140,7 @@ public class AvlTree<T extends Comparable<? super T>> {
      * @return New root
      */
     protected AvlNode<T> doubleWithLeftChild (AvlNode<T> k3){
-        k3.left = rotateWithRightChild (k3.left);
+        k3.left = rotateWithRightChild(k3.left);
         return rotateWithLeftChild (k3);
     }
 
@@ -123,6 +155,11 @@ public class AvlTree<T extends Comparable<? super T>> {
     protected AvlNode<T> rotateWithRightChild (AvlNode<T> k1){
         AvlNode<T> k2 = k1.right;
 
+        k2.parent = k1.parent;
+        k1.parent = k2;
+        if(k2.left!=null) {
+            k2.left.parent = k1;
+        }
         k1.right = k2.left;
         k2.left = k1;
 
@@ -146,73 +183,73 @@ public class AvlTree<T extends Comparable<? super T>> {
         return rotateWithRightChild (k1);
     }
 
-    public void makeEmpty(){
-        root = null;
-    }
-
-    public boolean isEmpty(){
-        return (root == null);
-    }
     /**
-     * Find the smallest item in the tree.
-     * @return smallest item or null if empty.
+     * Determine the height of the given node.
+     *
+     * @param t Node
+     * @return Height of the given node.
      */
-    public T findMin( )
-    {
-        if( isEmpty( ) ) return null;
-
-        return findMin( root ).element;
-    }
-
-    /**
-     * Find the largest item in the tree.
-     * @return the largest item of null if empty.
-     */
-    public T findMax( )
-    {
-        if( isEmpty( ) ) return null;
-        return findMax( root ).element;
-    }
-
-    /**
-     * Internal method to find the smallest item in a subtree.
-     * @param t the node that roots the tree.
-     * @return node containing the smallest item.
-     */
-    private AvlNode<T> findMin(AvlNode<T> t)
-    {
-        if( t == null )
-            return t;
-
-        while( t.left != null )
-            t = t.left;
-        return t;
-    }
-
-    /**
-     * Internal method to find the largest item in a subtree.
-     * @param t the node that roots the tree.
-     * @return node containing the largest item.
-     */
-    private AvlNode<T> findMax( AvlNode<T> t )
-    {
-        if( t == null )
-            return t;
-
-        while( t.right != null )
-            t = t.right;
-        return t;
+    public int height (AvlNode<T> t){
+        return t == null ? -1 : t.height;
     }
 
     public void inOrder(){
         inOrder(root);
     }
 
-    protected void inOrder(AvlNode T){
-        if(T!= null){
-            inOrder(T.left);
-            System.out.println(T.getElement());
-            inOrder(T.right);
+    protected void inOrder(AvlNode<T> node){
+        if(node!=null){
+            inOrder(node.left);
+            System.out.println(node);
+            inOrder(node.right);
+        }
+    }
+
+    @Override
+    public Iterator<T> iterator(){
+        return new TreeIterator(root);
+    }
+
+    class TreeIterator implements Iterator<T>{
+        private AvlNode<T> next;
+
+        public TreeIterator(AvlNode<T> root){
+            next = root;
+            if(next == null)
+                return;
+            while(next.left!=null){
+                next = next.left;
+            }
+        }
+
+        public boolean hasNext(){
+            return next != null;
+        }
+
+        public T next(){
+            if(!hasNext())throw new NoSuchElementException();
+            AvlNode<T> r = next;
+            if(next.right != null){
+                next = next.right;
+                while (next.left != null)
+                    next = next.left;
+                return r.getElement();
+            }else while(true){
+                if(next.parent == null){
+                    next = null;
+                    return r.getElement();
+                }
+                if(next.parent.left == next){
+                    next = next.parent;
+                    return r.getElement();
+                }
+                next = next.parent;
+            }
+        }
+
+        @Override
+        public void remove(){
+
         }
     }
 
@@ -228,8 +265,10 @@ public class AvlTree<T extends Comparable<? super T>> {
         t.insert(new Integer(6));
         t.insert(new Integer(7));
         t.insert(new Integer(8));
-        t.insert(new Integer(2));
         t.inOrder();
+        for(Integer i:t){
+            System.out.println(i);
+        }
     }
 }
 
@@ -238,8 +277,9 @@ class AvlNode<T>{
     protected AvlNode<T> left;
     protected AvlNode<T> right;
     /**
-     *
+     *为AvlNode 添加父节点
      */
+    protected AvlNode<T> parent;
     //Height of node
     protected int height;
     public AvlNode(T theElement){
@@ -253,5 +293,22 @@ class AvlNode<T>{
         element = theElement;
         left = lt;
         right = rt;
+    }
+
+    public int getHeight(){
+        return height;
+    }
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("element:").append(element);
+        sb.append(",height is ").append(height);
+        if(parent!=null){
+            sb.append("parent is:").append(parent.getElement());
+        }else {
+            sb.append("parent is Null");
+        }
+        //sb.append(", height is: ").append(height).append(", parent is :").append(parent);
+        return sb.toString();
     }
 }
