@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race.codec;
 
-import com.sun.xml.internal.ws.encoding.soap.SerializationException;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;

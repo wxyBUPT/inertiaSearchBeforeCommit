@@ -1,8 +1,5 @@
 package com.alibaba.middleware.race.decoupling;
 
-import com.alibaba.middleware.race.cache.LimitedAvlTree;
-import com.alibaba.middleware.race.storage.Extent;
-
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
