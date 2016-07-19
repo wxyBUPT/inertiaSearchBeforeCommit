@@ -1,11 +1,12 @@
 package com.alibaba.middleware.race.models;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 /**
  * Created by xiyuanbupt on 7/9/16.
  */
-public class Row extends HashMap<String,RowKV>{
+public class Row extends HashMap<String,RowKV> implements Serializable{
 
     public Row(){
         super();

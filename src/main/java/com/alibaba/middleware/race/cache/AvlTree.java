@@ -205,6 +205,23 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
         }
     }
 
+    public T find(T data){
+        return find(data,root);
+    }
+
+    protected T find(T data,AvlNode<T> root){
+        if(root == null){
+            return null;
+        }
+        if(root.getElement().equals(data)){
+            return root.getElement();
+        }else if(root.getElement().compareTo(data)<0){
+            return find(data,root.right);
+        }else {
+            return find(data,root.left);
+        }
+    }
+
     @Override
     public Iterator<T> iterator(){
         return new TreeIterator(root);
@@ -269,6 +286,9 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
         for(Integer i:t){
             System.out.println(i);
         }
+        System.out.println(t.find(4));
+        System.out.println(t.find(8));
+        System.out.println(t.find(10));
     }
 }
 

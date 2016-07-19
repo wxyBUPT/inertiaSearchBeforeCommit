@@ -2,10 +2,12 @@ package com.alibaba.middleware.race.models;
 
 import com.alibaba.middleware.race.OrderSystem;
 
+import java.io.Serializable;
+
 /**
  * Created by xiyuanbupt on 7/9/16.
  */
-public class RowKV implements Comparable<RowKV>,OrderSystem.KeyValue{
+public class RowKV implements Comparable<RowKV>,OrderSystem.KeyValue ,Serializable{
 
     String key;
     String rawValue;

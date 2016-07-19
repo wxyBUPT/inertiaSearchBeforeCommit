@@ -369,6 +369,7 @@ public class SimpleOrderSystemImpl implements OrderSystem {
             for (String file : files) {
                 BufferedReader bfr = createReader(file);
                 try {
+                    System.out.println("我就是想不同");
                     String line = bfr.readLine();
                     while (line != null) {
                         Row kvMap = createKVMapFromLine(line);
