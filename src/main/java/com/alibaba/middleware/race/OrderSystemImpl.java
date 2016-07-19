@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/13/16.
+ * 查询入口类
  */
 public class OrderSystemImpl implements OrderSystem {
     static {
@@ -222,9 +223,9 @@ abstract class DataFileHandler{
     protected int currentFileNum;
     protected int currentOff;
 
-    abstract void handleRow(Row row) throws IOException,OrderSystem.TypeException;
+    abstract void handleRow(Row row) throws IOException,OrderSystem.TypeException,InterruptedException;
 
-    void handle(Collection<String> files,FileManager fileManager) throws IOException,OrderSystem.TypeException{
+    void handle(Collection<String> files,FileManager fileManager) throws InterruptedException,IOException,OrderSystem.TypeException{
         this.fileManager = fileManager;
         FileInfoBean fib = fileManager.createStoreFile();
         currentFile = fib.getBuffer();
@@ -283,7 +284,7 @@ abstract class DataFileHandler{
 class GoodFileHandler extends DataFileHandler{
 
     @Override
-    void handleRow(Row row) throws IOException{
+    void handleRow(Row row) throws IOException,InterruptedException{
         byte[] byteRow = SerializationUtils.serialize(row);
         int size = byteRow.length;
         /**
@@ -300,17 +301,17 @@ class GoodFileHandler extends DataFileHandler{
          * Put index info to queue
          */
         ComparableKeysByGoodId goodIdKeys = new ComparableKeysByGoodId(row.get("goodid").valueAsString(),diskLoc);
-        DiskLocQueues.comparableKeysByGoodIdQueue.offer(goodIdKeys);
+        DiskLocQueues.comparableKeysByGoodIdQueue.put(goodIdKeys);
         ComparableKeysBySalerIdGoodId salerGoodKeys = new ComparableKeysBySalerIdGoodId(
                 row.get("salerid").valueAsString(),row.get("goodid").valueAsString(),diskLoc
         );
-        DiskLocQueues.comparableKeysBySalerIdGoodId.offer(salerGoodKeys);
+        DiskLocQueues.comparableKeysBySalerIdGoodId.put(salerGoodKeys);
     }
 }
 
 class BuyerFileHandler extends DataFileHandler{
     @Override
-    void handleRow(Row row) throws IOException {
+    void handleRow(Row row) throws IOException,InterruptedException {
         byte[] byteRow = SerializationUtils.serialize(row);
         int size = byteRow.length;
         /**
@@ -327,13 +328,13 @@ class BuyerFileHandler extends DataFileHandler{
          * Put index info to queue
          */
         ComparableKeysByBuyerId buyerIdKeys = new ComparableKeysByBuyerId(row.get("buyerid").valueAsString(),diskLoc);
-        DiskLocQueues.comparableKeysByBuyerIdQueue.offer(buyerIdKeys);
+        DiskLocQueues.comparableKeysByBuyerIdQueue.put(buyerIdKeys);
     }
 }
 
 class OrderFileHandler extends DataFileHandler{
     @Override
-    void handleRow(Row row) throws IOException,OrderSystem.TypeException{
+    void handleRow(Row row) throws IOException,OrderSystem.TypeException,InterruptedException{
         byte[] byteRow = SerializationUtils.serialize(row);
         int size = byteRow.length;
         /**
@@ -350,21 +351,21 @@ class OrderFileHandler extends DataFileHandler{
          * Put index info to queue
          */
         ComparableKeysByOrderId orderIdKeys = new ComparableKeysByOrderId(row.get("orderid").valueAsString(),diskLoc);
-        DiskLocQueues.comparableKeysByOrderId.offer(orderIdKeys);
+        DiskLocQueues.comparableKeysByOrderId.put(orderIdKeys);
         ComparableKeysByBuyerCreateTimeOrderId buyerCreateTimeOrderId = new ComparableKeysByBuyerCreateTimeOrderId(
                 row.get("buyerid").valueAsString(), row.get("createtime").valueAsLong(), row.get("orderid").valueAsLong(),diskLoc
         );
-        DiskLocQueues.comparableKeysByBuyerCreateTimeOrderId.offer(buyerCreateTimeOrderId);
+        DiskLocQueues.comparableKeysByBuyerCreateTimeOrderId.put(buyerCreateTimeOrderId);
 
         ComparableKeysBySalerGoodOrderId salerGoodOrderKeys = new ComparableKeysBySalerGoodOrderId(
                 row.get("goodid").valueAsString(),row.get("orderid").valueAsLong(),diskLoc
         );
-        DiskLocQueues.comparableKeysBySalerGoodOrderId.offer(salerGoodOrderKeys);
+        DiskLocQueues.comparableKeysBySalerGoodOrderId.put(salerGoodOrderKeys);
 
         ComparableKeysByGoodOrderId goodOrderKeys = new ComparableKeysByGoodOrderId(
                 row.get("goodid").valueAsString(),row.get("orderid").valueAsLong(),diskLoc
         );
-        DiskLocQueues.comparableKeysByGoodOrderId.offer(goodOrderKeys);
+        DiskLocQueues.comparableKeysByGoodOrderId.put(goodOrderKeys);
     }
 }
 

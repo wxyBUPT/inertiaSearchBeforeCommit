@@ -9,13 +9,13 @@ import java.util.NoSuchElementException;
  */
 public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
 
-    public AvlNode<T> root;
+    protected AvlNode<T> root;
 
     // TODO: make these optional based on some sort of 'debug' flag?
     // at the very least, make them read-only properties
-    public int countInsertions;
-    public int countSingleRotations;
-    public int countDoubleRotations;
+    protected int countInsertions;
+    protected int countSingleRotations;
+    protected int countDoubleRotations;
 
     /**
      * Avl Tree Constructor.
@@ -271,7 +271,7 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
     }
 
     public static void main (String[] args) { //String []args){
-        AvlTree<Integer> t = new AvlTree<Integer>();
+        AvlTree<Integer> t = new AvlTree<>();
 
         t.insert(new Integer(2));
         t.insert(new Integer(1));
