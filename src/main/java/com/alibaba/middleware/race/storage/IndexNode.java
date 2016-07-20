@@ -8,10 +8,10 @@ import java.util.Vector;
 /**
  * Created by xiyuanbupt on 7/13/16.
  */
-abstract class IndexNode implements Serializable{
+abstract class IndexNode<T extends Serializable> implements Serializable{
     //all type of node have data, parent and capacity
-    protected Vector<IndexDataNode> data;
-    //根据DeskLoc 可以反序列化出一个个
+    protected Vector<T> data;
+    //根据DeskLoc 可以反序列化出IndexTreeNode
     protected DiskLoc parent;
     //每一个node 最大容量
     protected int maxsize = RaceConf.INDEXNODEMAXSIZE;
@@ -21,19 +21,32 @@ abstract class IndexNode implements Serializable{
     }
 
     //both types of node need to insert and search
-    abstract IndexNode insert(IndexDataNode indexDataNode);
-    abstract DiskLoc search(IndexDataNode indexDataNode);
+    abstract IndexNode insert(T t);
+    abstract DiskLoc search(T t);
 
+    /**
+     * Judge if node is full
+     * full condition is data.size() == maxsize -1
+     * @return
+     */
     protected boolean isFull(){
         return data.size() == maxsize -1;
     }
 
-    public IndexDataNode getIndexDataAt(int index){
-        return (IndexDataNode)data.elementAt(index);
+    public int size(){
+        return data.size();
     }
 
-    //
-    protected void progagate(IndexDataNode indexDataNode,IndexNode right){
+    public T getDataAt(int index){
+        return (T)data.elementAt(index);
+    }
+
+    /**
+     *
+     * @param dnode
+     * @param right
+     */
+    protected void propagate(T dnode,IndexNode right){
 
     }
 }

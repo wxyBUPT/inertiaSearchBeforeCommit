@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.decoupling;
 
+import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.LimitedAvlTree;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 
@@ -9,11 +10,12 @@ import com.alibaba.middleware.race.models.comparableKeys.*;
  * 内存中的avl 索引
  */
 public class InMemoryAvlIndex {
-    public static LimitedAvlTree<ComparableKeysByGoodOrderId> goodOrderIdLimitedAvlTree;
-    public static LimitedAvlTree<ComparableKeysBySalerIdGoodId> salerIdGoodIdLimitedAvlTree;
-    public static LimitedAvlTree<ComparableKeysByBuyerCreateTimeOrderId> buyerCreateTimeOrderIdLimitedAvlTree;
-    public static LimitedAvlTree<ComparableKeysBySalerGoodOrderId> salerGoodOrderIdLimitedAvlTree;
-    public static LimitedAvlTree<ComparableKeysByOrderId> orderIdLimitedAvlTree;
-    public static LimitedAvlTree<ComparableKeysByGoodId> goodIdLimitedAvlTree;
-    public static LimitedAvlTree<ComparableKeysByBuyerId> buyerIdLimitedAvlTree;
+    static int limitedSize = RaceConf.INMEMORYMAXINDEXSIZE;
+    public static LimitedAvlTree<ComparableKeysByGoodOrderId> goodOrderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
+    public static LimitedAvlTree<ComparableKeysBySalerIdGoodId> salerIdGoodIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
+    public static LimitedAvlTree<ComparableKeysByBuyerCreateTimeOrderId> buyerCreateTimeOrderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
+    public static LimitedAvlTree<ComparableKeysBySalerGoodOrderId> salerGoodOrderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
+    public static LimitedAvlTree<ComparableKeysByOrderId> orderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
+    public static LimitedAvlTree<ComparableKeysByGoodId> goodIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
+    public static LimitedAvlTree<ComparableKeysByBuyerId> buyerIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
 }

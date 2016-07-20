@@ -42,6 +42,13 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
     }
 
     /**
+     * Deletes all nodes from the tree
+     */
+    public void makeEmpty(){
+        root = null;
+    }
+
+    /**
      * Insert an element into the tree.
      *
      * @param x Element to insert into the tree

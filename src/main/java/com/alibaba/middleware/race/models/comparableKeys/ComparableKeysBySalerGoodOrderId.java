@@ -2,10 +2,12 @@ package com.alibaba.middleware.race.models.comparableKeys;
 
 import com.alibaba.middleware.race.storage.DiskLoc;
 
+import java.io.Serializable;
+
 /**
  * Created by xiyuanbupt on 7/18/16.
  */
-public class ComparableKeysBySalerGoodOrderId implements Comparable<ComparableKeysBySalerGoodOrderId>{
+public class ComparableKeysBySalerGoodOrderId implements Comparable<ComparableKeysBySalerGoodOrderId>,Serializable{
 
     private String goodId;
     private Long orderId;

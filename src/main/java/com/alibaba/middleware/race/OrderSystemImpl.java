@@ -1,16 +1,18 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.codec.SerializationUtils;
+import com.alibaba.middleware.race.decoupling.BuildBuyerIdThread;
 import com.alibaba.middleware.race.decoupling.DiskLocQueues;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.RowKV;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 import com.alibaba.middleware.race.storage.DiskLoc;
+import com.alibaba.middleware.race.storage.FileInfoBean;
+import com.alibaba.middleware.race.storage.FileManager;
 import com.alibaba.middleware.race.storage.StoreType;
 
 import java.io.*;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,8 +29,6 @@ public class OrderSystemImpl implements OrderSystem {
     }
 
     private static final Logger LOG = Logger.getLogger(OrderSystemImpl.class.getName());
-    static private String booleanTrueValue = "true";
-    static private String booleanFalseValue = "false";
     static private String nameSpace = "tianchi";
 
     //根据三个表里面的主键查询
@@ -75,7 +75,10 @@ public class OrderSystemImpl implements OrderSystem {
          * set countdownlatch,wait all file read finish
          */
         final CountDownLatch doneSignal = new CountDownLatch(nThread);
-        final AtomicInteger nRemain = new AtomicInteger(nThread);
+
+        final AtomicInteger nOrderRemain = new AtomicInteger(0);
+        final AtomicInteger nGoodRemain = new AtomicInteger(0);
+        final AtomicInteger nBuyerRemain = new AtomicInteger(0);
 
         CountDownLatch indexDoneSignal = new CountDownLatch(7);
 
@@ -83,6 +86,7 @@ public class OrderSystemImpl implements OrderSystem {
          * nThread 个将原始数据写入磁盘的线程
          */
         for (final Collection<String> files : splitedOrderFiles) {
+            nOrderRemain.incrementAndGet();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -91,7 +95,7 @@ public class OrderSystemImpl implements OrderSystem {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    nRemain.decrementAndGet();
+                    nOrderRemain.decrementAndGet();
                     doneSignal.countDown();
                 }
             }).start();
@@ -99,6 +103,7 @@ public class OrderSystemImpl implements OrderSystem {
         }
 
         for (final Collection<String> files : splitedBuyerFiles) {
+            nBuyerRemain.incrementAndGet();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -107,7 +112,7 @@ public class OrderSystemImpl implements OrderSystem {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    nRemain.decrementAndGet();
+                    nBuyerRemain.decrementAndGet();
                     doneSignal.countDown();
                 }
             }).start();
@@ -115,6 +120,7 @@ public class OrderSystemImpl implements OrderSystem {
         }
 
         for (final Collection<String> files : splitedGoodFiles) {
+            nGoodRemain.incrementAndGet();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -123,7 +129,7 @@ public class OrderSystemImpl implements OrderSystem {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    nRemain.decrementAndGet();
+                    nGoodRemain.decrementAndGet();
                     doneSignal.countDown();
                 }
             }).start();
@@ -197,11 +203,11 @@ public class OrderSystemImpl implements OrderSystem {
             InterruptedException {
 
         // init order system
-        List<String> orderFiles = new ArrayList<String>();
-        List<String> buyerFiles = new ArrayList<String>();
+        List<String> orderFiles = new ArrayList<>();
+        List<String> buyerFiles = new ArrayList<>();
         ;
-        List<String> goodFiles = new ArrayList<String>();
-        List<String> storeFolders = new ArrayList<String>();
+        List<String> goodFiles = new ArrayList<>();
+        List<String> storeFolders = new ArrayList<>();
 
         orderFiles.add("order_records.txt");
         buyerFiles.add("buyer_records.txt");
@@ -366,116 +372,5 @@ class OrderFileHandler extends DataFileHandler{
                 row.get("goodid").valueAsString(),row.get("orderid").valueAsLong(),diskLoc
         );
         DiskLocQueues.comparableKeysByGoodOrderId.put(goodOrderKeys);
-    }
-}
-
-
-/**
- * 负责管理所有文件的类
- */
-class FileManager {
-
-    private static FileManager fileManager;
-
-    private FileManager(Collection<String> storeFloders,String nameSpace){
-        if(storeFloders.size()!=3){
-            throw new RuntimeException("storeFloders must equal to 3");
-        }
-        this.storeFloders = (ArrayList<String>)storeFloders;
-        nIndexFiles = 0;
-        nStoreFiles = 0;
-        this.nameSpace = nameSpace;
-    }
-
-    public static synchronized FileManager getInstance(Collection<String> storeFloders,String nameSpace){
-        if(fileManager == null){
-            fileManager = new FileManager(storeFloders,nameSpace);
-        }
-        return fileManager;
-    }
-
-    /**
-     * 每个文件的大小都是 1G
-     */
-    private static long singleFileSize = 1073741824;
-    private int nStoreFiles;
-    private int nIndexFiles;
-    private String nameSpace;
-    private ArrayList<String> storeFloders;
-
-    /**
-     * 用于记录文件标号和对应文件的关系记录
-     */
-    private Map<Integer,MappedByteBuffer> storeMap = new HashMap<>();
-
-    /**
-     * 用于记录索引标号与对应文件的关系记录
-     */
-    private Map<Integer,MappedByteBuffer> indexMap = new HashMap<>();
-
-    public synchronized FileInfoBean createStoreFile() throws IOException{
-        String dirBase = storeFloders.get(nStoreFiles%3);
-        String dir = dirBase + "/" + nameSpace + nStoreFiles;
-
-        RandomAccessFile memoryMappedFile = new RandomAccessFile(dir,"rw");
-
-        //Mapping a file into memory
-        MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE,0,singleFileSize);
-
-        storeMap.put(nStoreFiles,out);
-        FileInfoBean fib = new FileInfoBean(out,nStoreFiles);
-
-        nStoreFiles ++;
-        return fib;
-    }
-
-    public synchronized MappedByteBuffer createIndexFile() throws Exception{
-        String dirBase = storeFloders.get(nIndexFiles%3);
-        String dir = dirBase + nameSpace + ".index." + nIndexFiles;
-
-        RandomAccessFile memoryMappedFile = new RandomAccessFile(dir,"rw");
-
-        //Mapping a file into memory
-        MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE,0,singleFileSize);
-
-        indexMap.put(nIndexFiles,out);
-
-        nIndexFiles ++;
-        return out;
-    }
-
-    /**
-     * 从磁盘位置获得Row
-     * @param diskLoc
-     * @return
-     */
-    public Row getRowFromDiskLoc(DiskLoc diskLoc){
-        System.out.println(diskLoc);
-        int _a = diskLoc.get_a();
-        int ofs = diskLoc.getOfs();
-        int size = diskLoc.getSize();
-        byte[] byteRow = new byte[size];
-        MappedByteBuffer buffer = this.storeMap.get(_a);
-        int position = buffer.position();
-        buffer.position(ofs);
-        buffer.get(byteRow);
-        buffer.position(position);
-        return (Row) SerializationUtils.deserialize(byteRow);
-    }
-}
-
-class FileInfoBean{
-    private MappedByteBuffer mappedByteBuffer;
-    private int fileNum ;
-    public FileInfoBean(MappedByteBuffer mbf,int fn){
-        this.fileNum = fn;
-        this.mappedByteBuffer = mbf;
-    }
-
-    public MappedByteBuffer getBuffer(){
-        return mappedByteBuffer;
-    }
-    public int getfileN(){
-        return fileNum;
     }
 }

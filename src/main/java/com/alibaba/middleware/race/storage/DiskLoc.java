@@ -7,12 +7,12 @@ import java.io.Serializable;
  * 记录磁盘位置信息
  * http://docs.ros.org/electric/api/mongodb/html/classmongo_1_1DiskLoc.html#a4e481c6017491a33983cb4b57c1120d8
  */
-public class DiskLoc implements Serializable{
+public class DiskLoc implements Serializable,Comparable<DiskLoc>{
 
-    private int _a;//处于哪个文件
-    private int ofs;//在文件中的偏移位置
-    private StoreType storeType;
-    private int size;
+    protected int _a;//处于哪个文件
+    protected int ofs;//在文件中的偏移位置
+    protected StoreType storeType;
+    protected int size;
 
     public DiskLoc(int _a,int ofs,StoreType storeType,int size){
         this._a = _a;
@@ -49,6 +49,15 @@ public class DiskLoc implements Serializable{
         sb.append("DiskLoc: fileNum :").append(_a).append(", offset : ").append(ofs).append(",store type: ");
         sb.append(storeType).append(", data size : ").append(size);
         return sb.toString();
+    }
+
+    @Override
+    public int compareTo(DiskLoc o) {
+        int ret = this.size - o.size;
+        if(ret != 0)return ret;
+        ret = this._a - o._a;
+        if(ret != 0) return ret;
+        return this.ofs - o.ofs;
     }
 }
 

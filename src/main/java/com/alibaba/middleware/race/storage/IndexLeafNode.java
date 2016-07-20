@@ -1,16 +1,19 @@
 package com.alibaba.middleware.race.storage;
 
+import java.io.Serializable;
+
 /**
- * Created by xiyuanbupt on 7/13/16.
+ * Created by xiyuanbupt on 7/19/16.
  */
-public class IndexLeafNode extends IndexNode{
+public class IndexLeafNode<T extends Serializable> extends IndexNode<T>{
+
     @Override
-    IndexNode insert(IndexDataNode indexDataNode) {
+    IndexNode insert(T t) {
         return null;
     }
 
     @Override
-    DiskLoc search(IndexDataNode indexDataNode) {
+    DiskLoc search(T t) {
         return null;
     }
 }

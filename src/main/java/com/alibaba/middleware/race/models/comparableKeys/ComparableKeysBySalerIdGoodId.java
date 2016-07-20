@@ -2,10 +2,12 @@ package com.alibaba.middleware.race.models.comparableKeys;
 
 import com.alibaba.middleware.race.storage.DiskLoc;
 
+import java.io.Serializable;
+
 /**
  * Created by xiyuanbupt on 7/18/16.
  */
-public class ComparableKeysBySalerIdGoodId implements Comparable<ComparableKeysBySalerIdGoodId>{
+public class ComparableKeysBySalerIdGoodId implements Comparable<ComparableKeysBySalerIdGoodId>,Serializable{
 
     private DiskLoc diskLoc;
     private String salerId;
@@ -16,6 +18,7 @@ public class ComparableKeysBySalerIdGoodId implements Comparable<ComparableKeysB
         this.salerId = salerId;
         this.goodId = goodId;
     }
+
     @Override
     public int compareTo(ComparableKeysBySalerIdGoodId o) {
         if(this.salerId==null||this.goodId==null||o.salerId == null||o.goodId==null){

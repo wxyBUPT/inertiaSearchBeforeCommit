@@ -46,16 +46,3 @@ public class Namespace {
     }
 
 }
-
-//根据如下数据格式在btree中创建数据索引
-class IndexInfo <Key extends Comparable<Key>> implements Serializable{
-
-    Key key;
-    DiskLoc diskLoc;
-
-    IndexInfo(Key key,DiskLoc diskLoc){
-        this.key = key;
-        this.diskLoc = diskLoc;
-    }
-}
-
