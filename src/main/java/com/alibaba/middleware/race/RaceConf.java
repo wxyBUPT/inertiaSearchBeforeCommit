@@ -14,9 +14,9 @@ public class RaceConf {
     /**
      * 比赛环境使用
      */
-    //public static final int INMEMORYMAXINDEXSIZE = 240000;
+    public static final int INMEMORYMAXINDEXSIZE = 240000;
     /**
      * 测试环境使用
      */
-    public static final int INMEMORYMAXINDEXSIZE = 2400;
+    //public static final int INMEMORYMAXINDEXSIZE = 2400;
 }
