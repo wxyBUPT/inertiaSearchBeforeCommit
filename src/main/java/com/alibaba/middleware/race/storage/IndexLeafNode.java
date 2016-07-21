@@ -15,6 +15,7 @@ public class IndexLeafNode<T extends Serializable> extends IndexNode<T>{
     }
 
     public IndexLeafNode(){
+        super();
         this.data = new Vector<>(maxsize);
     }
 

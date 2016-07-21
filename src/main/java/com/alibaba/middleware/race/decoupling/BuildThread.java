@@ -91,9 +91,12 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
         }
         LOG.info("finsh create in memory index, flush all inmemory Tree to disk , total flush count is " + ++flushCount);
         sortedKeysInDisk = flushUtil.flushAvlToDisk(inMemoryTree,sortedKeysInDisk);
+        LOG.info("Finish flush , keys Disk location is " + sortedKeysInDisk);
         createBPlusTree();
         sendFinishSingle.countDown();
         LOG.info("finsh all");
+        //System.out.println("This is for test !!!!!!!!!!");
+        //forTest();
     }
 
     private void insertKeys(T key){

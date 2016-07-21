@@ -104,7 +104,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable> {
         newDiskLocs.add(diskLoc);
 
         from.makeEmpty();
-        LOG.info("Finsh flush, new diskLocks is " + newDiskLocs);
         return newDiskLocs;
     }
 
@@ -115,8 +114,37 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable> {
      * @return
      */
     public DiskLoc buildBPlusTree(LinkedList<DiskLoc> diskLocs){
-        System.out.println("This method hasn't been finsh ");
-        return new DiskLoc(0,0,StoreType.INDEXHEADER,1);
+        LOG.info("Start build bPlusTree");
+        LinkedList<DiskLoc> thisLevelNodePostion = diskLocs;
+        LinkedList<DiskLoc> highLevelNodePosition;
+        IndexTreeNode<T> currentParent = new IndexTreeNode<>();
+        while(thisLevelNodePostion.size()!=1){
+            System.out.println(thisLevelNodePostion.size());
+            highLevelNodePosition = new LinkedList<>();
+            for(DiskLoc diskLoc:thisLevelNodePostion){
+                /**
+                 * If currentParent is full , save it to disk, insert position to highLevelNodePosition
+                 */
+                if(currentParent.isFull()){
+                    DiskLoc insertPosition = indexExtentManager.putIndexNode(currentParent);
+                    highLevelNodePosition.add(insertPosition);
+                    currentParent = new IndexTreeNode<>();
+                }
+                IndexNode<T> indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+                T minKey = indexNode.getMinKey();
+                System.out.println(minKey);
+                currentParent.appendData(minKey);
+                currentParent.addPointer(diskLoc);
+            }
+            /**
+             * Insert the latest indexNode
+             */
+            DiskLoc insertPosition = indexExtentManager.putIndexNode(currentParent);
+            highLevelNodePosition.add(insertPosition);
+            currentParent = new IndexTreeNode<>();
+            thisLevelNodePostion = highLevelNodePosition;
+        }
+        return thisLevelNodePostion.getFirst();
     }
 
     public FlushUtil(){

@@ -6,18 +6,22 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/13/16.
  */
-abstract class IndexNode<T extends Serializable> implements Serializable,Iterable<T>{
+abstract public class IndexNode<T extends Serializable> implements Serializable,Iterable<T>{
+
+    protected static Logger LOG = Logger.getLogger(IndexNode.class.getName());
+
     //all type of node have data, parent and capacity
     protected Vector<T> data;
     //每一个node 最大容量
     protected int maxsize = RaceConf.INDEXNODEMAXSIZE;
 
     public boolean isLeafNode(){
-        return this.getClass().getName().trim().equals("IndexLeafNode");
+        return this.getClass().getName().trim().equals("com.alibaba.middleware.race.storage.IndexLeafNode");
     }
 
     //both types of node need to insert and search
@@ -31,6 +35,7 @@ abstract class IndexNode<T extends Serializable> implements Serializable,Iterabl
      * @return
      */
     abstract List<DiskLoc> searchBetween(T start,T end);
+
     public synchronized IndexNode appendData(T t) throws RuntimeException{
         if(isFull()){
             throw new RuntimeException("node is full ,there is some bug may be");
@@ -58,5 +63,9 @@ abstract class IndexNode<T extends Serializable> implements Serializable,Iterabl
     @Override
     public Iterator<T> iterator(){
         return data.iterator();
+    }
+
+    public T getMinKey(){
+        return data.firstElement();
     }
 }

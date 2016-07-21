@@ -74,6 +74,20 @@ public class IndexExtentManager {
         return (IndexLeafNode) SerializationUtils.deserialize(bytes);
     }
 
+    public synchronized IndexNode getIndexNodeFromDiskLoc(DiskLoc diskLoc){
+        int _a = diskLoc.get_a();
+        int ofs = diskLoc.getOfs();
+        int size = diskLoc.getSize();
+        byte[] bytes = new byte[size];
+        MappedByteBuffer buffer = this.indexMap.get(_a);
+        int position = buffer.position();
+        buffer.position(ofs);
+        buffer.get(bytes);
+        buffer.position(position);
+        return (IndexNode) SerializationUtils.deserialize(bytes);
+    }
+
+
     public synchronized DiskLoc putIndexLeafNode(IndexLeafNode indexLeafNode) {
         byte[] bytes = SerializationUtils.serialize(indexLeafNode);
         int size = bytes.length;
@@ -90,6 +104,25 @@ public class IndexExtentManager {
         DiskLoc diskLoc = new DiskLoc(currentFileNum,this.currentOff,StoreType.INDEXLEAFNODE,size);
         currentOff += size;
         return diskLoc;
+    }
+
+    public synchronized DiskLoc putIndexNode(IndexNode indexNode){
+        byte[] bytes = SerializationUtils.serialize(indexNode);
+        int size = bytes.length;
+        /**
+         * If file can't save more, create new File
+         */
+        try{
+            updataFile(size);
+        }catch (IOException e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        currentFile.put(bytes);
+        DiskLoc diskLoc = new DiskLoc(currentFileNum,this.currentOff,StoreType.INDEXNODE,size);
+        currentOff += size;
+        return diskLoc;
+
     }
 
     private synchronized void updataFile(int size) throws IOException{
@@ -125,6 +158,9 @@ public class IndexExtentManager {
         for(ComparableKeysByOrderId comparableKeysByOrderId:indexLeafNode1){
             System.out.println(comparableKeysByOrderId);
         }
+        System.out.println(indexLeafNode1.isLeafNode());
+        IndexNode<ComparableKeysByOrderId> idIndexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+        System.out.println(idIndexNode.isLeafNode());
     }
 
 }
