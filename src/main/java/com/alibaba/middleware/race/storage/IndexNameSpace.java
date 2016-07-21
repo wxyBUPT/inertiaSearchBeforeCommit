@@ -10,6 +10,5 @@ public class IndexNameSpace {
     public static DiskLoc orderRoot;
     public static DiskLoc buyerCreateTimeOrderRoot;
     public static DiskLoc goodOrderRoot;
-    public static DiskLoc salerGoodOrderRoot;
     public static DiskLoc salerGoodRoot;
 }

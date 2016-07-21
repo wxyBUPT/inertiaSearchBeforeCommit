@@ -14,7 +14,6 @@ public class InMemoryAvlIndex {
     public static LimitedAvlTree<ComparableKeysByGoodOrderId> goodOrderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
     public static LimitedAvlTree<ComparableKeysBySalerIdGoodId> salerIdGoodIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
     public static LimitedAvlTree<ComparableKeysByBuyerCreateTimeOrderId> buyerCreateTimeOrderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
-    public static LimitedAvlTree<ComparableKeysBySalerGoodOrderId> salerGoodOrderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
     public static LimitedAvlTree<ComparableKeysByOrderId> orderIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
     public static LimitedAvlTree<ComparableKeysByGoodId> goodIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);
     public static LimitedAvlTree<ComparableKeysByBuyerId> buyerIdLimitedAvlTree = new LimitedAvlTree<>(limitedSize);

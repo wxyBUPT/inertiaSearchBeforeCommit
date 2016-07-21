@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.decoupling;
 import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByGoodOrderId;
 import com.alibaba.middleware.race.storage.IndexNameSpace;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -10,8 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BuildGoodOrderIdThread extends BuildThread<ComparableKeysByGoodOrderId>{
 
-    public BuildGoodOrderIdThread(AtomicInteger nRemain){
-        super(nRemain);
+    @Override
+    protected void printRawData(ComparableKeysByGoodOrderId comparableKeysByGoodOrderId) {
+        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByGoodOrderId.getDiskLoc()));
+    }
+
+    public BuildGoodOrderIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){
+        super(nRemain,sendFinishSingle);
         this.keysQueue = DiskLocQueues.comparableKeysByGoodOrderId;
     }
 

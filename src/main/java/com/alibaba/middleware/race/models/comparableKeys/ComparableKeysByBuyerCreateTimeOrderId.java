@@ -28,7 +28,7 @@ public class ComparableKeysByBuyerCreateTimeOrderId implements Comparable<Compar
         if(ret != 0){
             return ret;
         }
-        ret = this.orderId.compareTo(orderId);
+        ret = this.orderId.compareTo(o.orderId);
         return ret;
     }
 
@@ -43,6 +43,14 @@ public class ComparableKeysByBuyerCreateTimeOrderId implements Comparable<Compar
 
     public DiskLoc getDiskLoc(){
         return diskLoc;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(ComparableKeysByBuyerCreateTimeOrderId.class.getName()+" : ");
+        sb.append("BuyerId: " + buyerId).append(", createTime: " + createTime + ",orderId: " + orderId);
+        return sb.toString();
     }
 
 }

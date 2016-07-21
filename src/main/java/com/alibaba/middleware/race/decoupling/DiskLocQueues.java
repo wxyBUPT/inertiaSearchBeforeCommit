@@ -17,6 +17,5 @@ public class DiskLocQueues {
     public static final LinkedBlockingDeque<ComparableKeysBySalerIdGoodId> comparableKeysBySalerIdGoodId = new LinkedBlockingDeque<>(100000);
 
     public static final LinkedBlockingDeque<ComparableKeysByBuyerCreateTimeOrderId> comparableKeysByBuyerCreateTimeOrderId = new LinkedBlockingDeque<>(100000);
-    public static final LinkedBlockingDeque<ComparableKeysBySalerGoodOrderId> comparableKeysBySalerGoodOrderId = new LinkedBlockingDeque<>(100000);
     public static final LinkedBlockingDeque<ComparableKeysByGoodOrderId> comparableKeysByGoodOrderId = new LinkedBlockingDeque<>(100000);
 }

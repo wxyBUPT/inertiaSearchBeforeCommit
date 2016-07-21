@@ -1,15 +1,11 @@
 package com.alibaba.middleware.race;
 
 import com.alibaba.middleware.race.codec.SerializationUtils;
-import com.alibaba.middleware.race.decoupling.BuildBuyerIdThread;
-import com.alibaba.middleware.race.decoupling.DiskLocQueues;
+import com.alibaba.middleware.race.decoupling.*;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.RowKV;
 import com.alibaba.middleware.race.models.comparableKeys.*;
-import com.alibaba.middleware.race.storage.DiskLoc;
-import com.alibaba.middleware.race.storage.FileInfoBean;
-import com.alibaba.middleware.race.storage.FileManager;
-import com.alibaba.middleware.race.storage.StoreType;
+import com.alibaba.middleware.race.storage.*;
 
 import java.io.*;
 import java.nio.MappedByteBuffer;
@@ -72,6 +68,12 @@ public class OrderSystemImpl implements OrderSystem {
         LOG.info("There will be " + nThread + "fileWriter threads");
 
         /**
+         * IndexExtentManager is a singleton , init it use paramter
+         */
+        IndexExtentManager.getInstance(storeFolders,nameSpace);
+        FileManager.getInstance(storeFolders,nameSpace);
+
+        /**
          * set countdownlatch,wait all file read finish
          */
         final CountDownLatch doneSignal = new CountDownLatch(nThread);
@@ -80,7 +82,7 @@ public class OrderSystemImpl implements OrderSystem {
         final AtomicInteger nGoodRemain = new AtomicInteger(0);
         final AtomicInteger nBuyerRemain = new AtomicInteger(0);
 
-        CountDownLatch indexDoneSignal = new CountDownLatch(7);
+        final CountDownLatch indexDoneSignal = new CountDownLatch(6);
 
         /**
          * nThread 个将原始数据写入磁盘的线程
@@ -138,6 +140,30 @@ public class OrderSystemImpl implements OrderSystem {
         /**
          * 七个创建索引线程
          */
+
+        new Thread(new BuildBuyerIdThread(nBuyerRemain,indexDoneSignal)).start();
+        new Thread(new BuildBuyerCreateTimeOrderIdThread(nOrderRemain,indexDoneSignal)).start();
+        new Thread(new BuildGoodIdThread(nGoodRemain,indexDoneSignal)).start();
+        new Thread(new BuildGoodOrderIdThread(nOrderRemain,indexDoneSignal)).start();
+        new Thread(new BuildOrderIdThread(nOrderRemain,indexDoneSignal)).start();
+        new Thread(new BuildSalerGoodIdThread(nGoodRemain,indexDoneSignal)).start();
+        /**
+         * For debug
+         */
+        //new Thread(new Runnable() {
+        //    @Override
+        //    public void run() {
+        //        while(true){
+        //            try{
+        //                Thread.sleep(3000);
+        //            }catch (Exception e){
+
+        //            }
+        //            System.out.println(indexDoneSignal.getCount());
+        //        }
+        //    }
+        //}).start();
+
 
         doneSignal.await();
         LOG.info("finish copy file");
@@ -358,15 +384,11 @@ class OrderFileHandler extends DataFileHandler{
          */
         ComparableKeysByOrderId orderIdKeys = new ComparableKeysByOrderId(row.get("orderid").valueAsString(),diskLoc);
         DiskLocQueues.comparableKeysByOrderId.put(orderIdKeys);
+
         ComparableKeysByBuyerCreateTimeOrderId buyerCreateTimeOrderId = new ComparableKeysByBuyerCreateTimeOrderId(
                 row.get("buyerid").valueAsString(), row.get("createtime").valueAsLong(), row.get("orderid").valueAsLong(),diskLoc
         );
         DiskLocQueues.comparableKeysByBuyerCreateTimeOrderId.put(buyerCreateTimeOrderId);
-
-        ComparableKeysBySalerGoodOrderId salerGoodOrderKeys = new ComparableKeysBySalerGoodOrderId(
-                row.get("goodid").valueAsString(),row.get("orderid").valueAsLong(),diskLoc
-        );
-        DiskLocQueues.comparableKeysBySalerGoodOrderId.put(salerGoodOrderKeys);
 
         ComparableKeysByGoodOrderId goodOrderKeys = new ComparableKeysByGoodOrderId(
                 row.get("goodid").valueAsString(),row.get("orderid").valueAsLong(),diskLoc

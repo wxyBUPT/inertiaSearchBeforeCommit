@@ -11,5 +11,12 @@ public class RaceConf {
     /**
      * 内存中索引存储最多key 的数量
      */
-    public static final int INMEMORYMAXINDEXSIZE = 240000;
+    /**
+     * 比赛环境使用
+     */
+    //public static final int INMEMORYMAXINDEXSIZE = 240000;
+    /**
+     * 测试环境使用
+     */
+    public static final int INMEMORYMAXINDEXSIZE = 2400;
 }

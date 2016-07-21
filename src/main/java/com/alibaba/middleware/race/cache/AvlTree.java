@@ -13,9 +13,10 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
 
     // TODO: make these optional based on some sort of 'debug' flag?
     // at the very least, make them read-only properties
-    protected int countInsertions;
+    protected long countInsertions;
     protected int countSingleRotations;
     protected int countDoubleRotations;
+    protected int elementCount ;
 
     /**
      * Avl Tree Constructor.
@@ -41,10 +42,15 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
         return b;
     }
 
+    public int getElementCount(){
+        return elementCount;
+    }
+
     /**
      * Deletes all nodes from the tree
      */
     public void makeEmpty(){
+        elementCount = 0;
         root = null;
     }
 
@@ -58,7 +64,7 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
     public boolean insert (T x){
         try {
             root = insert (x, root,null);
-
+            elementCount++;
             countInsertions++;
             return true;
         } catch(Exception e){ // TODO: catch a DuplicateValueException instead!
@@ -106,6 +112,9 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
                 }
         }
         else {
+            System.out.println("Some error Happen");
+            System.out.println(x);
+            System.out.println(t.element);
             throw new Exception("Attempting to insert duplicate value");
         }
 

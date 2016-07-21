@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.storage;
 
-import java.io.Serializable;
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;

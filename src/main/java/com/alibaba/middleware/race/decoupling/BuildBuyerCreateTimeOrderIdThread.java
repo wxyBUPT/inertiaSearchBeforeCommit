@@ -6,6 +6,7 @@ import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByBuyerCr
 import com.alibaba.middleware.race.storage.DiskLoc;
 import com.alibaba.middleware.race.storage.IndexNameSpace;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,9 +17,14 @@ import java.util.logging.Logger;
  */
 public class BuildBuyerCreateTimeOrderIdThread extends BuildThread<ComparableKeysByBuyerCreateTimeOrderId>{
 
-    public BuildBuyerCreateTimeOrderIdThread(AtomicInteger nRemain){
-        super(nRemain);
+    public BuildBuyerCreateTimeOrderIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){
+        super(nRemain,sendFinishSingle);
         this.keysQueue = DiskLocQueues.comparableKeysByBuyerCreateTimeOrderId;
+    }
+
+    @Override
+    protected void printRawData(ComparableKeysByBuyerCreateTimeOrderId comparableKeysByBuyerCreateTimeOrderId) {
+        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByBuyerCreateTimeOrderId.getDiskLoc()));
     }
 
     @Override

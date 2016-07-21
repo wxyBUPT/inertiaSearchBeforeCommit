@@ -30,4 +30,9 @@ public class ComparableKeysByOrderId implements Comparable<ComparableKeysByOrder
     public int compareTo(ComparableKeysByOrderId o) {
         return this.orderId.compareTo(o.orderId);
     }
+
+    @Override
+    public String toString(){
+        return "ComparableKeysByOrderId: orderId: " + orderId;
+    }
 }

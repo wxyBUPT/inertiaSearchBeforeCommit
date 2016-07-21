@@ -29,6 +29,8 @@ public class ComparableKeysByBuyerId implements Comparable<ComparableKeysByBuyer
         return dataDiskLoc;
     }
 
-
-
+    @Override
+    public String toString(){
+        return "ComparableKeysByBuyerId: buyerId : " + buyerId;
+    }
 }

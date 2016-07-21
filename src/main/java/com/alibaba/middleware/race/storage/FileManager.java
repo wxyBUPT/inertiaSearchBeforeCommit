@@ -42,6 +42,14 @@ public class FileManager {
         return fileManager;
     }
 
+    public static synchronized FileManager getInstance(){
+        if(fileManager==null){
+            LOG.info("Some bug exist! this shoudn't call first");
+            System.exit(-1);
+        }
+        return fileManager;
+    }
+
     /**
      * 每个文件的大小都是 1G
      */

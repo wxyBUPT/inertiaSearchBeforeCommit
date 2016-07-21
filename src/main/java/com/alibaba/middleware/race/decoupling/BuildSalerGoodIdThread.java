@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.decoupling;
 import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysBySalerIdGoodId;
 import com.alibaba.middleware.race.storage.IndexNameSpace;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -15,8 +16,13 @@ public class BuildSalerGoodIdThread extends BuildThread<ComparableKeysBySalerIdG
         IndexNameSpace.salerGoodRoot = flushUtil.buildBPlusTree(sortedKeysInDisk);
     }
 
-    public BuildSalerGoodIdThread(AtomicInteger nRemain){
-        super(nRemain);
+    @Override
+    protected void printRawData(ComparableKeysBySalerIdGoodId comparableKeysBySalerIdGoodId) {
+        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysBySalerIdGoodId.getDiskLoc()));
+    }
+
+    public BuildSalerGoodIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){
+        super(nRemain,sendFinishSingle);
         this.keysQueue = DiskLocQueues.comparableKeysBySalerIdGoodId;
     }
 }

@@ -15,7 +15,7 @@ public class LimitedAvlTree<T extends Comparable<? super T>> extends AvlTree<T >
     }
 
     public synchronized boolean isFull(){
-        return this.maxElement<= this.countInsertions;
+        return this.maxElement<= this.elementCount;
     }
 
     public static void main (String[] args) { //String []args){

@@ -21,4 +21,14 @@ public class ComparableKeysByGoodId implements Comparable<ComparableKeysByGoodId
     public int compareTo(ComparableKeysByGoodId o) {
         return this.goodId.compareTo(o.goodId);
     }
+
+    @Override
+    public String toString(){
+        return "ComparableKeysByGoodId: goodId: " + goodId;
+    }
+
+    public DiskLoc getDataDiskLoc(){
+        return dataDiskLoc;
+    }
+
 }

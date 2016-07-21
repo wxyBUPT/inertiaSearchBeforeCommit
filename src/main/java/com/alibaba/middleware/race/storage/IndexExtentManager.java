@@ -1,7 +1,8 @@
 package com.alibaba.middleware.race.storage;
 
-import com.alibaba.middleware.race.RaceConf;
+
 import com.alibaba.middleware.race.codec.SerializationUtils;
+import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByOrderId;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -49,41 +50,18 @@ public class IndexExtentManager {
     }
 
     /**
-     * 请求分配磁盘空间为size byte 的空间,申请的磁盘空间可能大于需要的size
-     * @param size
+     * after init,
      * @return
      */
-    public synchronized DiskLoc mallocDiskLoc(int size)throws IOException{
-        /**
-         * 如果有磁盘空间满足要求
-         */
-        //假设硬盘空间足够
-        //Iterator<DiskLoc> it = freeDiskLocs.iterator();
-        //DiskLoc diskLoc;
-        //while(it.hasNext()){
-        //    diskLoc = it.next();
-        //    if(diskLoc.getSize()>=size){
-        //        return diskLoc;
-        //    }
-        //}
-        /**
-         * If current file can't save more
-         */
-        if(currentFile.remaining()<size+4){
-            createNewIndexFile();
+    public static synchronized IndexExtentManager getInstance(){
+        if(indexExtentManager==null){
+            System.out.println("Get indexExtentManager fail, indexExtentManager hasn't been init");
+            System.exit(-1);
         }
-        /**
-         * move buffer position for size
-         * and
-         * make new disk lock
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.INDEXHEADER,size);
-        currentOff += size;
-        currentFile.position(currentOff);
-        return diskLoc;
+        return indexExtentManager;
     }
 
-    public synchronized byte[] getBytesFromDiskLoc(DiskLoc diskLoc){
+    public synchronized IndexLeafNode getIndexLeafNodeFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
@@ -93,18 +71,36 @@ public class IndexExtentManager {
         buffer.position(ofs);
         buffer.get(bytes);
         buffer.position(position);
-        return bytes;
+        return (IndexLeafNode) SerializationUtils.deserialize(bytes);
     }
 
-    public synchronized void putBytesToDiskLoc(DiskLoc diskLoc,byte[] bytes){
-        int _a = diskLoc.get_a();
-        int ofs = diskLoc.getOfs();
-        MappedByteBuffer buffer = this.indexMap.get(_a);
-        int position = buffer.position();
-        buffer.position(ofs);
-        buffer.put(bytes);
-        buffer.position(position);
+    public synchronized DiskLoc putIndexLeafNode(IndexLeafNode indexLeafNode) {
+        byte[] bytes = SerializationUtils.serialize(indexLeafNode);
+        int size = bytes.length;
+        /**
+         * If file can't save more, create new File
+         */
+        try {
+            updataFile(size);
+        } catch (IOException e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        currentFile.put(bytes);
+        DiskLoc diskLoc = new DiskLoc(currentFileNum,this.currentOff,StoreType.INDEXLEAFNODE,size);
+        currentOff += size;
+        return diskLoc;
     }
+
+    private synchronized void updataFile(int size) throws IOException{
+        if(currentFile.remaining()<size+4){
+            FileInfoBean fib = fileManager.createIndexFile();
+            currentFile = fib.getBuffer();
+            currentFileNum = fib.getfileN();
+            currentOff = 0;
+        }
+    }
+
 
     private synchronized void createNewIndexFile() throws IOException{
         FileInfoBean fib = fileManager.createIndexFile();
@@ -120,8 +116,15 @@ public class IndexExtentManager {
         storeFolders.add("./dir1");
         storeFolders.add("./dir2");
         IndexExtentManager indexExtentManager = IndexExtentManager.getInstance(storeFolders, "tianchi");
-        DiskLoc diskLoc;
         LOG.info("finsh");
+        IndexLeafNode<ComparableKeysByOrderId> indexLeafNode = new IndexLeafNode<>();
+        indexLeafNode.appendData(new ComparableKeysByOrderId(123L,new DiskLoc(0,0,StoreType.INDEXHEADER,1)));
+        DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(indexLeafNode);
+        IndexLeafNode<ComparableKeysByOrderId> indexLeafNode1 = indexExtentManager.getIndexLeafNodeFromDiskLoc(diskLoc);
+        System.out.println(indexLeafNode1);
+        for(ComparableKeysByOrderId comparableKeysByOrderId:indexLeafNode1){
+            System.out.println(comparableKeysByOrderId);
+        }
     }
 
 }

@@ -3,8 +3,13 @@ package com.alibaba.middleware.race.decoupling;
 import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.LimitedAvlTree;
 import com.alibaba.middleware.race.storage.DiskLoc;
+import com.alibaba.middleware.race.storage.FileManager;
+import com.alibaba.middleware.race.storage.IndexExtentManager;
+import com.alibaba.middleware.race.storage.IndexLeafNodeIterator;
 
+import java.io.Serializable;
 import java.util.LinkedList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,9 +18,10 @@ import java.util.logging.Logger;
 /**
  * Created by xiyuanbupt on 7/20/16.
  */
-public abstract class BuildThread<T extends Comparable<? super T>> implements Runnable{
+public abstract class BuildThread<T extends Comparable<? super T> & Serializable> implements Runnable{
     protected static Logger LOG = Logger.getLogger(BuildThread.class.getName());
     protected LinkedBlockingDeque<T> keysQueue;
+    protected FileManager fileManager = FileManager.getInstance();
 
     /**
      * 用来判断原始数据复制线程是否完成数据复制
@@ -34,23 +40,43 @@ public abstract class BuildThread<T extends Comparable<? super T>> implements Ru
      */
     protected int flushCount = 0;
     protected FlushUtil<T> flushUtil;
+    protected CountDownLatch sendFinishSingle;
 
     /**
      * bTreeRoot 的引用
      */
 
-    public BuildThread(AtomicInteger nRemain){
+    public BuildThread(final AtomicInteger nRemain, CountDownLatch sendFinishSingle){
         this.nRemain = nRemain;
         this.inMemoryTree = new LimitedAvlTree<>(RaceConf.INMEMORYMAXINDEXSIZE);
         this.sortedKeysInDisk = new LinkedList<>();
         this.flushUtil = new FlushUtil<>();
+        this.sendFinishSingle = sendFinishSingle;
+        /**
+         * Use to report condition
+         * for debug
+         */
+        //new Thread(new Runnable() {
+        //    @Override
+        //    public void run() {
+        //        while(true){
+        //            try{
+        //                Thread.sleep(2000);
+        //            }catch (Exception e){
+
+        //            }
+        //            LOG.info("nRemain is : " + nRemain + ", inMemoryTree size is :" + inMemoryTree.getElementCount());
+        //        }
+        //    }
+        //}).start();
     }
 
     @Override
     public void run() {
+        LOG.info("Thread start ");
         while(true){
             try{
-                T keys = keysQueue.poll(30, TimeUnit.SECONDS);
+                T keys = keysQueue.poll(1, TimeUnit.SECONDS);
                 if(keys == null){
                     if(nRemain.get()==0){
                         LOG.info("finsh insert all index data of "  );
@@ -66,6 +92,8 @@ public abstract class BuildThread<T extends Comparable<? super T>> implements Ru
         LOG.info("finsh create in memory index, flush all inmemory Tree to disk , total flush count is " + ++flushCount);
         sortedKeysInDisk = flushUtil.flushAvlToDisk(inMemoryTree,sortedKeysInDisk);
         createBPlusTree();
+        sendFinishSingle.countDown();
+        LOG.info("finsh all");
     }
 
     private void insertKeys(T key){
@@ -75,6 +103,15 @@ public abstract class BuildThread<T extends Comparable<? super T>> implements Ru
         }
         inMemoryTree.insert(key);
     }
+
+    private void forTest(){
+        IndexLeafNodeIterator<T> iterator = new IndexLeafNodeIterator<>(sortedKeysInDisk,IndexExtentManager.getInstance());
+        while (iterator.hasNext()){
+            printRawData(iterator.next());
+        }
+    }
+
+    abstract protected void printRawData(T t);
 
     protected abstract void createBPlusTree();
 }

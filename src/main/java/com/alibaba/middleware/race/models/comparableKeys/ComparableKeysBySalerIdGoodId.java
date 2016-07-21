@@ -42,4 +42,9 @@ public class ComparableKeysBySalerIdGoodId implements Comparable<ComparableKeysB
     public DiskLoc getDiskLoc(){
         return diskLoc;
     }
+
+    @Override
+    public String toString(){
+        return "ComparableKeysBySalerIdGoodId: salerId: " + salerId + ", goodId: " + goodId;
+    }
 }

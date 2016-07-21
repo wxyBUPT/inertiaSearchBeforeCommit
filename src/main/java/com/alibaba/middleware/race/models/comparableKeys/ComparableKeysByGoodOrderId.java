@@ -41,4 +41,9 @@ public class ComparableKeysByGoodOrderId implements Comparable<ComparableKeysByG
     public DiskLoc getDiskLoc(){
         return diskLoc;
     }
+
+    @Override
+    public String toString(){
+        return "ComparableKeysByGoodOrderId: goodId: " + goodId + "orderId " + orderId;
+    }
 }
