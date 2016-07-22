@@ -95,7 +95,8 @@ public class FileManager {
         RandomAccessFile memoryMappedFile = new RandomAccessFile(dir,"rw");
 
         //Mapping a file into memory
-        MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE,0,singleFileSize);
+        MappedByteBuffer out = memoryMappedFile.getChannel().
+                map(FileChannel.MapMode.READ_WRITE,0,singleFileSize);
 
         FileInfoBean fib = new FileInfoBean(out,nIndexFiles);
 
@@ -108,7 +109,7 @@ public class FileManager {
      * @param diskLoc
      * @return
      */
-    public synchronized Row getRowFromDiskLoc(DiskLoc diskLoc){
+    public Row getRowFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
@@ -116,8 +117,10 @@ public class FileManager {
         MappedByteBuffer buffer = this.storeMap.get(_a);
         //Lock lock = storeLockMap.get(_a);
         //lock.lock();
-        buffer.position(ofs);
-        buffer.get(bytes);
+        synchronized (this) {
+            buffer.position(ofs);
+            buffer.get(bytes);
+        }
         //lock.unlock();
         String line = new String(bytes);
         return createKVMapFromLine(line);
