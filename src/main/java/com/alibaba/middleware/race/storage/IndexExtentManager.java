@@ -94,17 +94,17 @@ public class IndexExtentManager {
      * @param diskLoc
      * @return
      */
-    public IndexNode getIndexNodeFromDiskLocForSearch(DiskLoc diskLoc){
+    public synchronized IndexNode getIndexNodeFromDiskLocForSearch(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
         MappedByteBuffer buffer = indexMap.get(_a);
-        Lock lock = indexLockMap.get(_a);
-        lock.lock();
+        //Lock lock = indexLockMap.get(_a);
+        //lock.lock();
         buffer.position(ofs);
         buffer.get(bytes);
-        lock.unlock();
+        //lock.unlock();
         return (IndexNode)SerializationUtils.deserialize(bytes);
     }
 

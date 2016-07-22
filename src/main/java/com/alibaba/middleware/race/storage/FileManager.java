@@ -108,17 +108,17 @@ public class FileManager {
      * @param diskLoc
      * @return
      */
-    public Row getRowFromDiskLoc(DiskLoc diskLoc){
+    public synchronized Row getRowFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
         MappedByteBuffer buffer = this.storeMap.get(_a);
-        Lock lock = storeLockMap.get(_a);
-        lock.lock();
+        //Lock lock = storeLockMap.get(_a);
+        //lock.lock();
         buffer.position(ofs);
         buffer.get(bytes);
-        lock.unlock();
+        //lock.unlock();
         String line = new String(bytes);
         return createKVMapFromLine(line);
     }
