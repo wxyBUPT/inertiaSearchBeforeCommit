@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 /**
@@ -28,7 +30,8 @@ public class IndexExtentManager {
     /**
      * 用于记录索引标号与对应文件的关系记录
      */
-    private ConcurrentHashMap<Integer,MappedByteBuffer> indexMap = new ConcurrentHashMap<>();
+    private HashMap<Integer,MappedByteBuffer> indexMap = new HashMap<>();
+    private HashMap<Integer,Lock> indexLockMap = new HashMap<>();
 
     private IndexExtentManager(Collection<String> storeFloders,String nameSpace){
         LOG.info("init singlton");
@@ -60,31 +63,57 @@ public class IndexExtentManager {
         return indexExtentManager;
     }
 
-    public synchronized IndexLeafNode getIndexLeafNodeFromDiskLoc(DiskLoc diskLoc){
+    public IndexLeafNode getIndexLeafNodeFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
+        Lock lock = this.indexLockMap.get(_a);
+        lock.lock();
         MappedByteBuffer buffer = this.indexMap.get(_a);
         int position = buffer.position();
         buffer.position(ofs);
         buffer.get(bytes);
         buffer.position(position);
+        lock.unlock();
         return (IndexLeafNode) SerializationUtils.deserialize(bytes);
     }
 
-    public synchronized IndexNode getIndexNodeFromDiskLoc(DiskLoc diskLoc){
+    public IndexNode getIndexNodeFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
+        Lock lock = indexLockMap.get(_a);
+        lock.lock();
         MappedByteBuffer buffer = this.indexMap.get(_a);
         int position = buffer.position();
         buffer.position(ofs);
         buffer.get(bytes);
         buffer.position(position);
+        lock.unlock();
         return (IndexNode) SerializationUtils.deserialize(bytes);
     }
+
+    /**
+     * 查询使用的方法,不恢复文件位置,创建索引阶段不可使用
+     * @param diskLoc
+     * @return
+     */
+    public IndexNode getIndexNodeFromDiskLocForSearch(DiskLoc diskLoc){
+        int _a = diskLoc.get_a();
+        int ofs = diskLoc.getOfs();
+        int size = diskLoc.getSize();
+        byte[] bytes = new byte[size];
+        MappedByteBuffer buffer = indexMap.get(_a);
+        Lock lock = indexLockMap.get(_a);
+        lock.lock();
+        buffer.position(ofs);
+        buffer.get(bytes);
+        lock.unlock();
+        return (IndexNode)SerializationUtils.deserialize(bytes);
+    }
+
 
 
     public synchronized DiskLoc putIndexLeafNode(IndexLeafNode indexLeafNode) {
@@ -126,10 +155,7 @@ public class IndexExtentManager {
 
     private synchronized void updataFile(int size) throws IOException{
         if(currentFile.remaining()<size+4){
-            FileInfoBean fib = fileManager.createIndexFile();
-            currentFile = fib.getBuffer();
-            currentFileNum = fib.getfileN();
-            currentOff = 0;
+            createNewIndexFile();
         }
     }
 
@@ -139,6 +165,7 @@ public class IndexExtentManager {
         currentFile = fib.getBuffer();
         currentFileNum = fib.getfileN();
         indexMap.put(currentFileNum,currentFile);
+        indexLockMap.put(currentFileNum,new ReentrantLock());
         currentOff = 0;
     }
 

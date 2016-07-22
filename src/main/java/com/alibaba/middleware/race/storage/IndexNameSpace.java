@@ -46,7 +46,7 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc == null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+            indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
@@ -59,7 +59,7 @@ public class IndexNameSpace {
         while (!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc==null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+            indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
@@ -72,7 +72,7 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc==null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+            indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
@@ -120,7 +120,7 @@ public class IndexNameSpace {
                 Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
                 while (!diskLocs.isEmpty()){
                     DiskLoc diskLoc = diskLocs.remove();
-                    IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+                    IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
                     nodes.add(indexNode);
                 }
             }

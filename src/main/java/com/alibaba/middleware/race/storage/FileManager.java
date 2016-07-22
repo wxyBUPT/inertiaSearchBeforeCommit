@@ -14,7 +14,10 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 /**
@@ -63,7 +66,8 @@ public class FileManager {
     /**
      * 用于记录文件标号和对应文件的关系记录
      */
-    private ConcurrentHashMap<Integer,MappedByteBuffer> storeMap = new ConcurrentHashMap<>();
+    private HashMap<Integer,MappedByteBuffer> storeMap = new HashMap<>();
+    private HashMap<Integer,Lock> storeLockMap = new HashMap<>();
 
 
     public synchronized FileInfoBean createStoreFile() throws IOException {
@@ -76,6 +80,7 @@ public class FileManager {
         MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE,0,singleFileSize);
 
         storeMap.put(nStoreFiles,out);
+        storeLockMap.put(nStoreFiles,new ReentrantLock());
         FileInfoBean fib = new FileInfoBean(out,nStoreFiles);
 
         nStoreFiles ++;
@@ -99,20 +104,21 @@ public class FileManager {
     }
 
     /**
-     * 从磁盘位置获得Row
+     * 从磁盘位置获得Row,可能最浪费时间的代码就在这段
      * @param diskLoc
      * @return
      */
-    public synchronized Row getRowFromDiskLoc(DiskLoc diskLoc){
+    public Row getRowFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
         MappedByteBuffer buffer = this.storeMap.get(_a);
-        int position = buffer.position();
+        Lock lock = storeLockMap.get(_a);
+        lock.lock();
         buffer.position(ofs);
         buffer.get(bytes);
-        buffer.position(position);
+        lock.unlock();
         String line = new String(bytes);
         return createKVMapFromLine(line);
     }
