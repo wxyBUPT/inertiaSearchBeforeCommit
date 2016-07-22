@@ -48,7 +48,9 @@ public class IndexNameSpace {
             if(diskLoc == null)return null;
             indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
         }
-        return fileManager.getRowFromDiskLoc(indexNode.search(key));
+        DiskLoc diskLoc = indexNode.search(key);
+        if(diskLoc==null)return null;
+        return fileManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Row queryGoodDataByGoodId(String goodId){
@@ -59,7 +61,9 @@ public class IndexNameSpace {
             if(diskLoc==null)return null;
             indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
         }
-        return fileManager.getRowFromDiskLoc(indexNode.search(key));
+        DiskLoc diskLoc = indexNode.search(key);
+        if(diskLoc==null)return null;
+        return fileManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Row queryBuyerDataByBuyerId(String buyerId){
@@ -70,7 +74,9 @@ public class IndexNameSpace {
             if(diskLoc==null)return null;
             indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
         }
-        return fileManager.getRowFromDiskLoc(indexNode.search(key));
+        DiskLoc diskLoc = indexNode.search(key);
+        if(diskLoc==null)return null;
+        return fileManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Deque<Row> queryOrderDataByBuyerCreateTime(long startTime,long endTime,String buyerid){
