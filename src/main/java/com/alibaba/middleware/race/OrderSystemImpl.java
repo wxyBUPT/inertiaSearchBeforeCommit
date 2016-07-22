@@ -446,20 +446,20 @@ public class OrderSystemImpl implements OrderSystem {
         List<String> goodFiles = new ArrayList<>();
         List<String> storeFolders = new ArrayList<>();
 
-        //orderFiles.add("order_records.txt");
-        //buyerFiles.add("buyer_records.txt");
-        //goodFiles.add("good_records.txt");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.0");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.1.1");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.2.2");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.3");
+        orderFiles.add("order_records.txt");
+        buyerFiles.add("buyer_records.txt");
+        goodFiles.add("good_records.txt");
+        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.0");
+        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.1.1");
+        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.2.2");
+        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.3");
 
-        buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.0.0");
-        buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.1.1");
+        //buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.0.0");
+        //buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.1.1");
 
-        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.0.0");
-        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.1.1");
-        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.2.2");
+        //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.0.0");
+        //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.1.1");
+        //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.2.2");
         storeFolders.add("./dir0");
         storeFolders.add("./dir1");
         storeFolders.add("./dir2");
@@ -473,12 +473,63 @@ public class OrderSystemImpl implements OrderSystem {
         }
 
         // 用例
-        System.out.println("\n查询买家ID为" + "ap-863b-6b7ec5507d6a" + "一定时间范围内的订单");
-        Iterator<Result> it = os.queryOrdersByBuyer(1481395380,1485470748,"ap-863b-6b7ec5507d6a");
-        System.out.println("\n查询完成");
-        while (it.hasNext()){
-            System.out.println("这是一个迭代器");
+        long orderid = 2982388;
+        System.out.println("\n查询订单号为" + orderid + "的订单");
+        System.out.println(os.queryOrder(orderid, null));
+
+        System.out.println("\n查询订单号为" + orderid + "的订单，查询的keys为空，返回订单，但没有kv数据");
+        System.out.println(os.queryOrder(orderid, new ArrayList<String>()));
+
+        System.out.println("\n查询订单号为" + orderid
+                + "的订单的contactphone, buyerid, foo, done, price字段");
+        List<String> queryingKeys = new ArrayList<String>();
+        queryingKeys.add("contactphone");
+        queryingKeys.add("buyerid");
+        queryingKeys.add("foo");
+        queryingKeys.add("done");
+        queryingKeys.add("price");
+        Result result = os.queryOrder(orderid, queryingKeys);
+        System.out.println(result);
+        System.out.println("\n查询订单号不存在的订单");
+        result = os.queryOrder(1111, queryingKeys);
+        if (result == null) {
+            System.out.println(1111 + " order not exist");
+        }
+
+        String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
+        long startTime = 1471025622;
+        long endTime = 1471219509;
+        System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
+        Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
+        while (it.hasNext()) {
             System.out.println(it.next());
+        }
+
+        String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
+        String salerid = "almm_47766ea0-b8c0-4616-b3c8-35bc4433af13";
+        System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
+        it = os.queryOrdersBySaler(salerid, goodid, queryingKeys);
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+
+        goodid = "good_d191eeeb-fed1-4334-9c77-3ee6d6d66aff";
+        String attr = "app_order_33_0";
+        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+        System.out.println(os.sumOrdersByGood(goodid, attr));
+
+        attr = "done";
+        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+        KeyValue sum = os.sumOrdersByGood(goodid, attr);
+        if (sum == null) {
+            System.out.println("由于该字段是布尔类型，返回值是null");
+        }
+
+        attr = "foo";
+        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+        sum = os.sumOrdersByGood(goodid, attr);
+        if (sum == null) {
+            System.out.println("由于该字段不存在，返回值是null");
         }
     }
 }
@@ -491,7 +542,7 @@ abstract class DataFileHandler{
     protected int currentFileNum;
     protected int currentOff;
 
-    abstract void handleRow(Row row) throws IOException,OrderSystem.TypeException,InterruptedException;
+    abstract void handleLine(String line) throws IOException,OrderSystem.TypeException,InterruptedException;
 
     void handle(Collection<String> files,FileManager fileManager) throws InterruptedException,IOException,OrderSystem.TypeException{
         this.fileManager = fileManager;
@@ -504,8 +555,7 @@ abstract class DataFileHandler{
             try {
                 String line = bfr.readLine();
                 while (line != null) {
-                    Row kvMap = createKVMapFromLine(line);
-                    handleRow(kvMap);
+                    handleLine(line);
                     line = bfr.readLine();
                 }
             } finally {
@@ -550,8 +600,66 @@ abstract class DataFileHandler{
 }
 
 class GoodFileHandler extends DataFileHandler{
-
     @Override
+    void handleLine(String line) throws IOException, OrderSystem.TypeException, InterruptedException {
+        byte[] bytes = line.getBytes("UTF-8");
+        int size = bytes.length;
+        /**
+         * If file can't save more, create new File;
+         */
+        updataFile(size);
+        currentFile.put(bytes);
+        /**
+         * Create new diskLoc
+         */
+        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.GOODLINE,size);
+        currentOff += size;
+        String[] kvs = line.split("\t");
+        /**
+         * Find goodid and salerid
+         */
+        String goodid = null;
+        String salerid = null;
+        boolean shouldBreak = false;
+        for(String kv: kvs){
+            int p = kv.indexOf(':');
+            String key = kv.substring(0, p);
+            String value = kv.substring(p + 1);
+            if (key.length() == 0 || value.length() == 0) {
+                throw new RuntimeException("Bad data:" + line);
+            }
+            switch (key)
+            {
+                case "goodid":
+                    goodid = value;
+                    if(salerid!=null){
+                        shouldBreak = true;
+                    }
+                    break;
+                case "salerid":
+                    salerid = value;
+                    if(goodid!=null){
+                        shouldBreak = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if(shouldBreak){
+                break;
+            }
+        }
+        if(goodid==null || salerid==null){
+            throw new RuntimeException("Bad data! goodid " + goodid + ", salerid: " + salerid);
+        }
+        ComparableKeysByGoodId goodIdKeys = new ComparableKeysByGoodId(goodid,diskLoc);
+        DiskLocQueues.comparableKeysByGoodIdQueue.put(goodIdKeys);
+        ComparableKeysBySalerIdGoodId salerGoodKeys = new ComparableKeysBySalerIdGoodId(
+                salerid,goodid,diskLoc
+        );
+        DiskLocQueues.comparableKeysBySalerIdGoodId.put(salerGoodKeys);
+    }
+
     void handleRow(Row row) throws IOException,InterruptedException{
         byte[] byteRow = SerializationUtils.serialize(row);
         int size = byteRow.length;
@@ -579,6 +687,43 @@ class GoodFileHandler extends DataFileHandler{
 
 class BuyerFileHandler extends DataFileHandler{
     @Override
+    void handleLine(String line) throws IOException, OrderSystem.TypeException, InterruptedException {
+        byte[] bytes = line.getBytes("UTF-8");
+        int size = bytes.length;
+        /**
+         * If file can't save more, create new File;
+         */
+        updataFile(size);
+        currentFile.put(bytes);
+        /**
+         * Create new diskLoc
+         */
+        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.GOODLINE,size);
+        currentOff += size;
+        String[] kvs = line.split("\t");
+        /**
+         * Find buyerid
+         */
+        String buyerid = null;
+        for(String kv: kvs){
+            int p = kv.indexOf(':');
+            String key = kv.substring(0, p);
+            String value = kv.substring(p + 1);
+            if (key.length() == 0 || value.length() == 0) {
+                throw new RuntimeException("Bad data:" + line);
+            }
+            if(key.compareTo("buyerid")==0){
+                buyerid = value;
+                break;
+            }
+        }
+        /**
+         * Put index info to queue
+         */
+        ComparableKeysByBuyerId key = new ComparableKeysByBuyerId(buyerid,diskLoc);
+        DiskLocQueues.comparableKeysByBuyerIdQueue.put(key);
+    }
+
     void handleRow(Row row) throws IOException,InterruptedException {
         byte[] byteRow = SerializationUtils.serialize(row);
         int size = byteRow.length;
@@ -602,6 +747,82 @@ class BuyerFileHandler extends DataFileHandler{
 
 class OrderFileHandler extends DataFileHandler{
     @Override
+    void handleLine(String line) throws IOException, OrderSystem.TypeException, InterruptedException {
+        byte[] bytes = line.getBytes("UTF-8");
+        int size = bytes.length;
+        /**
+         * If file can't save more, create new File;
+         */
+        updataFile(size);
+        currentFile.put(bytes);
+        /**
+         * Create new diskLoc
+         */
+        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.GOODLINE,size);
+        currentOff += size;
+        String[] kvs = line.split("\t");
+        /**
+         * Find goodid and salerid
+         */
+        Long orderid= null;
+        String buyerid = null;
+        boolean shouldBreak = false;
+        Long createtime = null;
+        String goodid = null;
+
+        for(String kv:kvs){
+            int p = kv.indexOf(':');
+            String key = kv.substring(0, p);
+            String value = kv.substring(p + 1);
+            if (key.length() == 0 || value.length() == 0) {
+                throw new RuntimeException("Bad data:" + line);
+            }
+            switch (key){
+                case "orderid":
+                    orderid = Long.parseLong(value);
+                    if(buyerid!=null&&createtime!=null&&goodid!=null){
+                        shouldBreak = true;
+                    }
+                    break;
+                case "buyerid":
+                    buyerid = value;
+                    if(orderid!=null &&createtime!=null&&goodid!=null){
+                        shouldBreak = true;
+                    }
+                    break;
+                case "createtime":
+                    createtime = Long.parseLong(value);
+                    if(orderid!=null && buyerid!=null&&goodid!=null){
+                        shouldBreak = true;
+                    }
+                    break;
+                case "goodid":
+                    goodid = value;
+                    if(orderid!=null && buyerid!=null&&createtime!=null){
+                        shouldBreak = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if(shouldBreak){
+                break;
+            }
+        }
+        ComparableKeysByOrderId orderIdKeys = new ComparableKeysByOrderId(orderid,diskLoc);
+        DiskLocQueues.comparableKeysByOrderId.put(orderIdKeys);
+
+        ComparableKeysByBuyerCreateTimeOrderId buyerCreateTimeOrderId = new ComparableKeysByBuyerCreateTimeOrderId(
+                buyerid, createtime, orderid,diskLoc
+        );
+        DiskLocQueues.comparableKeysByBuyerCreateTimeOrderId.put(buyerCreateTimeOrderId);
+
+        ComparableKeysByGoodOrderId goodOrderKeys = new ComparableKeysByGoodOrderId(
+                goodid,orderid,diskLoc
+        );
+        DiskLocQueues.comparableKeysByGoodOrderId.put(goodOrderKeys);
+    }
+
     void handleRow(Row row) throws IOException,OrderSystem.TypeException,InterruptedException{
         byte[] byteRow = SerializationUtils.serialize(row);
         int size = byteRow.length;

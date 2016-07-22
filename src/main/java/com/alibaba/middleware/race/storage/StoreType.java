@@ -7,5 +7,5 @@ import java.io.Serializable;
  * DisLoc 存储的数据类型,包括原始数据,index 的叶子节点,index 的树节点
  */
 public enum StoreType implements Serializable{
-        ROWDATA,INDEXLEAFNODE,INDEXTREENODE,INDEXHEADER,INDEXNODE
+        ROWDATA,INDEXLEAFNODE,INDEXTREENODE,INDEXHEADER,INDEXNODE,BUYERLINE,GOODLINE,ORDERLINE
 }

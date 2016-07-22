@@ -6,6 +6,7 @@ package com.alibaba.middleware.race.storage;
 
 import com.alibaba.middleware.race.codec.SerializationUtils;
 import com.alibaba.middleware.race.models.Row;
+import com.alibaba.middleware.race.models.RowKV;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -106,12 +107,29 @@ public class FileManager {
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
-        byte[] byteRow = new byte[size];
+        byte[] bytes = new byte[size];
         MappedByteBuffer buffer = this.storeMap.get(_a);
         int position = buffer.position();
         buffer.position(ofs);
-        buffer.get(byteRow);
+        buffer.get(bytes);
         buffer.position(position);
-        return (Row) SerializationUtils.deserialize(byteRow);
+        String line = new String(bytes);
+        return createKVMapFromLine(line);
+    }
+
+    private Row createKVMapFromLine(String line) {
+        String[] kvs = line.split("\t");
+        Row kvMap = new Row();
+        for (String rawkv : kvs) {
+            int p = rawkv.indexOf(':');
+            String key = rawkv.substring(0, p);
+            String value = rawkv.substring(p + 1);
+            if (key.length() == 0 || value.length() == 0) {
+                throw new RuntimeException("Bad data:" + line);
+            }
+            RowKV kv = new RowKV(key, value);
+            kvMap.put(kv.key(), kv);
+        }
+        return kvMap;
     }
 }
