@@ -22,6 +22,11 @@ public class BuildOrderIdThread extends BuildThread<ComparableKeysByOrderId>{
     }
 
     @Override
+    protected void cacheRoot() {
+        IndexNameSpace.mOrderRoot = flushUtil.bCacheRoot(IndexNameSpace.orderRoot);
+    }
+
+    @Override
     protected void createBPlusTree() {
         IndexNameSpace.orderRoot = flushUtil.buildBPlusTree(sortedKeysInDisk);
     }

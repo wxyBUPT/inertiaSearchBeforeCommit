@@ -12,6 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BuildSalerGoodIdThread extends BuildThread<ComparableKeysBySalerIdGoodId>{
 
     @Override
+    protected void cacheRoot() {
+        IndexNameSpace.mSalerGoodRoot = flushUtil.bCacheRoot(IndexNameSpace.salerGoodRoot);
+    }
+
+    @Override
     protected void createBPlusTree() {
         IndexNameSpace.salerGoodRoot = flushUtil.buildBPlusTree(sortedKeysInDisk);
     }

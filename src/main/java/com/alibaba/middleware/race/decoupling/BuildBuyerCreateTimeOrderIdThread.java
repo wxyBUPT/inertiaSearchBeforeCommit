@@ -23,6 +23,13 @@ public class BuildBuyerCreateTimeOrderIdThread extends BuildThread<ComparableKey
     }
 
     @Override
+    protected void cacheRoot() {
+        IndexNameSpace.mBuyerCreateTimeOrderRoot = flushUtil.bCacheRoot(
+                IndexNameSpace.buyerCreateTimeOrderRoot
+        );
+    }
+
+    @Override
     protected void printRawData(ComparableKeysByBuyerCreateTimeOrderId comparableKeysByBuyerCreateTimeOrderId) {
         System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByBuyerCreateTimeOrderId.getDataDiskLoc()));
     }

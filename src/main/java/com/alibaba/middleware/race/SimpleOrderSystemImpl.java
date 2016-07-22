@@ -317,7 +317,7 @@ public class SimpleOrderSystemImpl implements OrderSystem {
         String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
         String salerid = "almm_47766ea0-b8c0-4616-b3c8-35bc4433af13";
         System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
-        it = os.queryOrdersBySaler(salerid, goodid, new ArrayList<String>());
+        it = os.queryOrdersBySaler(salerid, goodid, queryingKeys);
         while (it.hasNext()) {
             System.out.println(it.next());
         }

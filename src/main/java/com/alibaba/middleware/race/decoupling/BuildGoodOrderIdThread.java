@@ -16,6 +16,11 @@ public class BuildGoodOrderIdThread extends BuildThread<ComparableKeysByGoodOrde
         System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByGoodOrderId.getDataDiskLoc()));
     }
 
+    @Override
+    protected void cacheRoot() {
+        IndexNameSpace.mGoodOrderRoot = flushUtil.bCacheRoot(IndexNameSpace.goodOrderRoot);
+    }
+
     public BuildGoodOrderIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){
         super(nRemain,sendFinishSingle);
         this.keysQueue = DiskLocQueues.comparableKeysByGoodOrderId;

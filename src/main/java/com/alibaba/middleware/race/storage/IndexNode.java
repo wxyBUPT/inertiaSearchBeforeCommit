@@ -5,13 +5,14 @@ import com.alibaba.middleware.race.RaceConf;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/13/16.
  */
-abstract public class IndexNode<T extends Serializable & Comparable > implements Serializable,Iterable<T >{
+abstract public class IndexNode<T extends Serializable & Comparable > implements Serializable,Iterable<T>{
 
     protected static Logger LOG = Logger.getLogger(IndexNode.class.getName());
 
@@ -30,11 +31,11 @@ abstract public class IndexNode<T extends Serializable & Comparable > implements
 
     /**
      * 搜索key 的值介于 start 和 end 之间的diskLoc 的值
-     * @param start
-     * @param end
+     * @param min
+     * @param max
      * @return
      */
-    abstract List<DiskLoc> searchBetween(T start,T end);
+    abstract Queue<DiskLoc> searchBetween(T min, T max);
 
     public synchronized IndexNode appendData(T t) throws RuntimeException{
         if(isFull()){

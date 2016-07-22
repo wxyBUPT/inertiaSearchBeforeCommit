@@ -1,13 +1,12 @@
 package com.alibaba.middleware.race.storage;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Created by xiyuanbupt on 7/21/16.
  */
-public class IndexTreeNode<T extends Serializable & Comparable> extends IndexNode<T> {
+public class IndexTreeNode<T extends Serializable & Comparable & Indexable> extends IndexNode<T> {
 
     protected Vector<DiskLoc> pointer;
 
@@ -36,8 +35,29 @@ public class IndexTreeNode<T extends Serializable & Comparable> extends IndexNod
     }
 
     @Override
-    List<DiskLoc> searchBetween(Serializable start, Serializable end) {
-        return null;
+    Queue<DiskLoc> searchBetween(T min, T max) {
+        /**
+         * if value <= end && nextValue > min , add this element pointer
+         * return all pointer
+         */
+        Queue<DiskLoc> diskLocs = new LinkedList<>();
+        int size = data.size();
+        if(max.compareTo(data.firstElement())<0){
+            return null;
+        }
+        for(int i = 0;i<size-1;++i){
+            int ret = max.compareTo(data.get(i));
+            if(ret<0)return diskLocs;
+            ret = min.compareTo(data.get(i+1));
+            if(ret<0)diskLocs.add(pointer.get(i));
+        }
+        /**
+         * Handle the last element
+         */
+        if(max.compareTo(data.lastElement())>=0){
+            diskLocs.add(pointer.lastElement());
+        }
+        return diskLocs;
     }
 
     public synchronized IndexTreeNode addPointer(DiskLoc diskLoc){

@@ -22,6 +22,11 @@ public class BuildGoodIdThread extends BuildThread<ComparableKeysByGoodId>{
     }
 
     @Override
+    protected void cacheRoot() {
+        IndexNameSpace.mGoodRoot = flushUtil.bCacheRoot(IndexNameSpace.goodRoot);
+    }
+
+    @Override
     protected void createBPlusTree() {
         IndexNameSpace.goodRoot = flushUtil.buildBPlusTree(sortedKeysInDisk);
     }

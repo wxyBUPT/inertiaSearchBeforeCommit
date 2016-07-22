@@ -272,19 +272,73 @@ public class OrderSystemImpl implements OrderSystem {
         return ResultImpl.createResultRow(orderData,buyerData,goodData,createQueryKeys(keys));
     }
 
-    @Override
-    public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime, String buyerid) {
-        return null;
+    private ResultImpl createResultFromOrderGoodData(Row orderData,Row goodData,Collection<String> keys){
+        String buyerId = orderData.get("buyerid").valueAsString();
+        Row buyerData = indexNameSpace.queryBuyerDataByBuyerId(buyerId);
+        return ResultImpl.createResultRow(orderData,buyerData,goodData,createQueryKeys(keys));
     }
 
     @Override
-    public Iterator<Result> queryOrdersBySaler(String salerid, String goodid, Collection<String> keys) {
-        return null;
+    public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime, String buyerid) {
+        final Deque<Row> orderDatas = indexNameSpace.queryOrderDataByBuyerCreateTime(startTime,endTime,buyerid);
+
+        return new Iterator<Result>() {
+            @Override
+            public boolean hasNext() {
+                return orderDatas != null && orderDatas.size()>0;
+            }
+
+            @Override
+            public Result next() {
+                if(!hasNext()){
+                    return null;
+                }
+                Row orderData = orderDatas.pollLast();
+                return createResultFromOrderData(orderData,null);
+            }
+
+            @Override
+            public void remove() {
+
+            }
+        };
+    }
+
+    @Override
+    public Iterator<Result> queryOrdersBySaler(String salerid, String goodid, final Collection<String> keys) {
+        final Row goodData = indexNameSpace.queryGoodDataByGoodId(goodid);
+        String querySalerId = goodData.get("salerid").valueAsString();
+        if(salerid.compareTo(querySalerId)!=0){
+            return null;
+        }
+        final Queue<Row> orderDatas = indexNameSpace.queryOrderDataByGoodid(goodid);
+
+        return new Iterator<Result>() {
+            @Override
+            public boolean hasNext() {
+                return orderDatas != null && orderDatas.size()>0;
+            }
+
+            @Override
+            public Result next() {
+                if(!hasNext()){
+                    return next();
+                }
+                Row orderData = orderDatas.poll();
+                return createResultFromOrderGoodData(orderData,goodData,keys);
+            }
+
+            @Override
+            public void remove() {
+
+            }
+        };
     }
 
     @Override
     public KeyValue sumOrdersByGood(String goodid, String key) {
-        return null;
+        final Queue<Row> orderData = indexNameSpace.queryOrderDataByGoodid(goodid);
+
     }
 
     private Collection<String> getFolderFiles(Collection<String> files, String storeFolder) {
@@ -334,18 +388,37 @@ public class OrderSystemImpl implements OrderSystem {
 
         OrderSystem os = new OrderSystemImpl();
         os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
-        System.out.println(os.queryOrder(2982388,new ArrayList<String>()));
 
-        System.out.println("\n查询订单号为" + 2982388
-                + "的订单的contactphone, buyerid, foo, done, price字段");
         List<String> queryingKeys = new ArrayList<String>();
         queryingKeys.add("contactphone");
         queryingKeys.add("buyerid");
         queryingKeys.add("foo");
         queryingKeys.add("done");
         queryingKeys.add("price");
-        Result result = os.queryOrder(2982388, queryingKeys);
-        System.out.println(result);
+        Result result ;
+
+        System.out.println("\n查询订单号不存在的订单");
+        result = os.queryOrder(1111, queryingKeys);
+        if (result == null) {
+            System.out.println(1111 + " order not exist");
+        }
+
+        String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
+        long startTime = 1471025622;
+        long endTime = 1471219509;
+        System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
+        Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
+
+        String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
+        String salerid = "almm_47766ea0-b8c0-4616-b3c8-35bc4433af13";
+        System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
+        it = os.queryOrdersBySaler(salerid, goodid, queryingKeys);
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
     }
 }
 

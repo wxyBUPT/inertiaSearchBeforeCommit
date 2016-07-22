@@ -23,6 +23,7 @@ public class ComparableKeysByGoodOrderId implements Indexable,Comparable<Compara
     public ComparableKeysByGoodOrderId(String goodId,Long orderId){
         this.goodId = goodId;
         this.orderId = orderId;
+        this.diskLoc = null;
     }
 
     @Override

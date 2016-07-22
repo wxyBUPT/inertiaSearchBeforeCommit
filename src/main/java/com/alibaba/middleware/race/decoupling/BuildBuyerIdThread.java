@@ -16,6 +16,11 @@ public class BuildBuyerIdThread extends BuildThread<ComparableKeysByBuyerId>{
         System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByBuyerId.getDataDiskLoc()));
     }
 
+    @Override
+    protected void cacheRoot() {
+        IndexNameSpace.mBuyerRoot = flushUtil.bCacheRoot(IndexNameSpace.buyerRoot);
+    }
+
     public BuildBuyerIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){
         super(nRemain,sendFinishSingle);
         this.keysQueue = DiskLocQueues.comparableKeysByBuyerIdQueue;

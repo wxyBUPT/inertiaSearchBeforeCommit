@@ -145,6 +145,12 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
         return thisLevelNodePostion.getFirst();
     }
 
+    public IndexNode bCacheRoot(DiskLoc diskLoc){
+        LOG.info("Cache root start ");
+        return indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+
+    }
+
     public FlushUtil(){
         this.indexExtentManager = IndexExtentManager.getInstance();
         flushCount = new AtomicInteger(0);

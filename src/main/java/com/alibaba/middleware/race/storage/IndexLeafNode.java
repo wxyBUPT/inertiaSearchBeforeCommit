@@ -1,8 +1,8 @@
 package com.alibaba.middleware.race.storage;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 
 /**
@@ -11,8 +11,25 @@ import java.util.Vector;
 public class IndexLeafNode<T extends Serializable & Comparable & Indexable> extends IndexNode<T>{
 
     @Override
-    List<DiskLoc> searchBetween(T start, T end) {
-        return null;
+    Queue<DiskLoc> searchBetween(T min, T max) {
+        Queue<DiskLoc> diskLocs = new LinkedList<>();
+        int size = data.size();
+        if(max.compareTo(data.firstElement())<0){
+            return null;
+        }
+        for(int i = 0;i<size-1;++i){
+            T t = data.get(i);
+            if(min.compareTo(t)<=0&&max.compareTo(t)>=0){
+                diskLocs.add(t.getDataDiskLoc());
+            }
+        }
+        /**
+         * Handle the last element
+         */
+        if(max.compareTo(data.lastElement())>=0){
+            diskLocs.add(data.lastElement().getDataDiskLoc());
+        }
+        return diskLocs;
     }
 
     public IndexLeafNode(){

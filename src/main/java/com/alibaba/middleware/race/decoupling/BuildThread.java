@@ -90,6 +90,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
         sortedKeysInDisk = flushUtil.flushAvlToDisk(inMemoryTree,sortedKeysInDisk);
         LOG.info("Finish flush , keys Disk location is " + sortedKeysInDisk);
         createBPlusTree();
+        cacheRoot();
         sendFinishSingle.countDown();
         LOG.info("finsh all");
         //System.out.println("This is for test !!!!!!!!!!");
@@ -114,4 +115,9 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
     abstract protected void printRawData(T t);
 
     protected abstract void createBPlusTree();
+
+    /**
+     * 将跟节点载入内存
+     */
+    protected abstract void cacheRoot();
 }
