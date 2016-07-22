@@ -12,6 +12,7 @@ import java.nio.MappedByteBuffer;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 /**
@@ -26,6 +27,10 @@ public class OrderSystemImpl implements OrderSystem {
 
     private static final Logger LOG = Logger.getLogger(OrderSystemImpl.class.getName());
     static private String nameSpace = "tianchi";
+    final AtomicLong queryOrderBySalerCount = new AtomicLong(0);
+    final AtomicLong queryOrderByBuyerCount = new AtomicLong(0);
+    final AtomicLong queryOrderCount = new AtomicLong(0);
+    final AtomicLong queryOrderByGoodCount = new AtomicLong(0);
 
     //根据三个表里面的主键查询
 
@@ -47,7 +52,12 @@ public class OrderSystemImpl implements OrderSystem {
                         } catch (Exception e) {
 
                         }
-                        LOG.info("time is ");
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("queryOrderBySalerCount is : " ).append(queryOrderBySalerCount);
+                        sb.append("queryOrderByBuyerCount is : " ).append(queryOrderByBuyerCount);
+                        sb.append("queryOrderCount is : "  ).append(queryOrderCount);
+                        sb.append("queryOrderByGoodCount is : ").append(queryOrderByGoodCount);
+                        LOG.info(sb.toString());
                     }
                 }
             }).start();
@@ -93,6 +103,8 @@ public class OrderSystemImpl implements OrderSystem {
         final AtomicInteger nBuyerRemain = new AtomicInteger(0);
 
         final CountDownLatch indexDoneSignal = new CountDownLatch(6);
+
+
 
         /**
          * nThread 个将原始数据写入磁盘的线程
@@ -274,7 +286,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Result queryOrder(long orderId, Collection<String> keys) {
-        System.out.println("queryOrder" + orderId);
+        queryOrderCount.incrementAndGet();
         Row orderData = indexNameSpace.queryOrderDataByOrderId(orderId);
         if(orderData == null){
             return null;
@@ -298,7 +310,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime, String buyerid) {
-        System.out.println("queryQrdersByBuyer" + startTime + endTime + buyerid);
+        queryOrderByBuyerCount.incrementAndGet();
         final Deque<Row> orderDatas = indexNameSpace.queryOrderDataByBuyerCreateTime(startTime,endTime,buyerid);
 
         return new Iterator<Result>() {
@@ -325,7 +337,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Iterator<Result> queryOrdersBySaler(String salerid, String goodid, final Collection<String> keys) {
-        System.out.println("queryOrdersBySaler" + salerid + goodid);
+        queryOrderBySalerCount.incrementAndGet();
         final Row goodData = indexNameSpace.queryGoodDataByGoodId(goodid);
         String querySalerId = goodData.get("salerid").valueAsString();
         if(salerid.compareTo(querySalerId)!=0){
@@ -357,7 +369,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public KeyValue sumOrdersByGood(String goodid, String key) {
-        System.out.println("queryOrdersByGood" + goodid);
+        queryOrderByGoodCount.incrementAndGet();
         final Queue<Row> orderDatas = indexNameSpace.queryOrderDataByGoodid(goodid);
         List<ResultImpl> allData = new ArrayList<>(orderDatas.size());
         Row orderData = orderDatas.poll();
