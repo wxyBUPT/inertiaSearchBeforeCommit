@@ -17,17 +17,11 @@ public class IndexLeafNode<T extends Serializable & Comparable & Indexable> exte
         if(max.compareTo(data.firstElement())<0){
             return null;
         }
-        for(int i = 0;i<size-1;++i){
+        for(int i = 0;i<size;++i){
             T t = data.get(i);
             if(min.compareTo(t)<=0&&max.compareTo(t)>=0){
                 diskLocs.add(t.getDataDiskLoc());
             }
-        }
-        /**
-         * Handle the last element
-         */
-        if(max.compareTo(data.lastElement())>=0){
-            diskLocs.add(data.lastElement().getDataDiskLoc());
         }
         return diskLocs;
     }
