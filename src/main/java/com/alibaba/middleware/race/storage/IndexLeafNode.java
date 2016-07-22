@@ -44,7 +44,7 @@ public class IndexLeafNode<T extends Serializable & Comparable & Indexable> exte
     @Override
     DiskLoc search(T t) {
         int lo = 0;
-        int hi = data.size();
+        int hi = data.size() -1;
         while (lo<=hi){
             int mid = lo +(hi-lo)/2;
             int ret = t.compareTo(data.get(mid));

@@ -63,35 +63,29 @@ public class IndexExtentManager {
         return indexExtentManager;
     }
 
-    public IndexLeafNode getIndexLeafNodeFromDiskLoc(DiskLoc diskLoc){
+    public synchronized IndexLeafNode getIndexLeafNodeFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
-        Lock lock = this.indexLockMap.get(_a);
-        lock.lock();
         MappedByteBuffer buffer = this.indexMap.get(_a);
         int position = buffer.position();
         buffer.position(ofs);
         buffer.get(bytes);
         buffer.position(position);
-        lock.unlock();
         return (IndexLeafNode) SerializationUtils.deserialize(bytes);
     }
 
-    public IndexNode getIndexNodeFromDiskLoc(DiskLoc diskLoc){
+    public synchronized IndexNode getIndexNodeFromDiskLoc(DiskLoc diskLoc){
         int _a = diskLoc.get_a();
         int ofs = diskLoc.getOfs();
         int size = diskLoc.getSize();
         byte[] bytes = new byte[size];
-        Lock lock = indexLockMap.get(_a);
-        lock.lock();
         MappedByteBuffer buffer = this.indexMap.get(_a);
         int position = buffer.position();
         buffer.position(ofs);
         buffer.get(bytes);
         buffer.position(position);
-        lock.unlock();
         return (IndexNode) SerializationUtils.deserialize(bytes);
     }
 

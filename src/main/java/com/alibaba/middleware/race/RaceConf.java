@@ -20,5 +20,5 @@ public class RaceConf {
      */
     //public static final int INMEMORYMAXINDEXSIZE = 2400;
 
-    public static final boolean debug = true;
+    public static final boolean debug = false;
 }
