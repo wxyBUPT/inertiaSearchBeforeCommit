@@ -325,7 +325,7 @@ public class OrderSystemImpl implements OrderSystem {
                     return next();
                 }
                 Row orderData = orderDatas.poll();
-                return createResultFromOrderGoodData(orderData,goodData,keys);
+                return createResultFromOrderGoodData(orderData,goodData,createQueryKeys(keys));
             }
 
             @Override
@@ -337,8 +337,53 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public KeyValue sumOrdersByGood(String goodid, String key) {
-        final Queue<Row> orderData = indexNameSpace.queryOrderDataByGoodid(goodid);
+        final Queue<Row> orderDatas = indexNameSpace.queryOrderDataByGoodid(goodid);
+        List<ResultImpl> allData = new ArrayList<>(orderDatas.size());
+        Row orderData = orderDatas.poll();
+        HashSet<String> queryingKeys = new HashSet<>();
+        queryingKeys.add(key);
+        while(orderData!=null){
+            allData.add(createResultFromOrderData(orderData,queryingKeys));
+            orderData = orderDatas.poll();
+        }
 
+        //accumulate as Long
+        try{
+            boolean hasValidData = false;
+            long sum = 0;
+            for(ResultImpl r: allData){
+                KeyValue kv = r.get(key);
+                if(kv!=null){
+                    sum +=kv.valueAsLong();
+                    hasValidData = true;
+                }
+            }
+            if(hasValidData){
+                return new RowKV(key,Long.toString(sum));
+            }
+        }catch (TypeException e){
+
+        }
+
+        //accumulate as double
+        try{
+            boolean hasValidData = false;
+            double sum = 0;
+            for(ResultImpl r:allData){
+                KeyValue kv = r.get(key);
+                if(kv != null){
+                    sum += kv.valueAsDouble();
+                    hasValidData = true;
+                }
+            }
+            if(hasValidData){
+                return new RowKV(key,Double.toString(sum));
+            }
+        }
+        catch (TypeException e){
+
+        }
+        return null;
     }
 
     private Collection<String> getFolderFiles(Collection<String> files, String storeFolder) {
@@ -418,6 +463,25 @@ public class OrderSystemImpl implements OrderSystem {
         it = os.queryOrdersBySaler(salerid, goodid, queryingKeys);
         while (it.hasNext()) {
             System.out.println(it.next());
+        }
+
+        goodid = "good_d191eeeb-fed1-4334-9c77-3ee6d6d66aff";
+        String attr = "app_order_33_0";
+        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+        System.out.println(os.sumOrdersByGood(goodid, attr));
+
+        attr = "done";
+        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+        KeyValue sum = os.sumOrdersByGood(goodid, attr);
+        if (sum == null) {
+            System.out.println("由于该字段是布尔类型，返回值是null");
+        }
+
+        attr = "foo";
+        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+        sum = os.sumOrdersByGood(goodid, attr);
+        if (sum == null) {
+            System.out.println("由于该字段不存在，返回值是null");
         }
     }
 }
