@@ -1,13 +1,14 @@
 package com.alibaba.middleware.race.models.comparableKeys;
 
 import com.alibaba.middleware.race.storage.DiskLoc;
+import com.alibaba.middleware.race.storage.Indexable;
 
 import java.io.Serializable;
 
 /**
  * Created by xiyuanbupt on 7/18/16.
  */
-public class ComparableKeysByBuyerCreateTimeOrderId implements Comparable<ComparableKeysByBuyerCreateTimeOrderId>,Serializable{
+public class ComparableKeysByBuyerCreateTimeOrderId implements Indexable,Comparable<ComparableKeysByBuyerCreateTimeOrderId>,Serializable{
 
     private String buyerId;
     private Long createTime;
@@ -41,7 +42,8 @@ public class ComparableKeysByBuyerCreateTimeOrderId implements Comparable<Compar
         this.diskLoc = diskLoc;
     }
 
-    public DiskLoc getDiskLoc(){
+    @Override
+    public DiskLoc getDataDiskLoc() {
         return diskLoc;
     }
 

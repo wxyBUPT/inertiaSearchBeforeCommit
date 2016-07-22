@@ -18,7 +18,7 @@ public class BuildSalerGoodIdThread extends BuildThread<ComparableKeysBySalerIdG
 
     @Override
     protected void printRawData(ComparableKeysBySalerIdGoodId comparableKeysBySalerIdGoodId) {
-        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysBySalerIdGoodId.getDiskLoc()));
+        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysBySalerIdGoodId.getDataDiskLoc()));
     }
 
     public BuildSalerGoodIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){

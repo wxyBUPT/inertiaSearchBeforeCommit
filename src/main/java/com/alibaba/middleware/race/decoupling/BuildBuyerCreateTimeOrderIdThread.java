@@ -24,7 +24,7 @@ public class BuildBuyerCreateTimeOrderIdThread extends BuildThread<ComparableKey
 
     @Override
     protected void printRawData(ComparableKeysByBuyerCreateTimeOrderId comparableKeysByBuyerCreateTimeOrderId) {
-        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByBuyerCreateTimeOrderId.getDiskLoc()));
+        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByBuyerCreateTimeOrderId.getDataDiskLoc()));
     }
 
     @Override

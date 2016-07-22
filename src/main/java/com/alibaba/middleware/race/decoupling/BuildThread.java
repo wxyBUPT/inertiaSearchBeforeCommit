@@ -2,10 +2,7 @@ package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.LimitedAvlTree;
-import com.alibaba.middleware.race.storage.DiskLoc;
-import com.alibaba.middleware.race.storage.FileManager;
-import com.alibaba.middleware.race.storage.IndexExtentManager;
-import com.alibaba.middleware.race.storage.IndexLeafNodeIterator;
+import com.alibaba.middleware.race.storage.*;
 
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -18,7 +15,7 @@ import java.util.logging.Logger;
 /**
  * Created by xiyuanbupt on 7/20/16.
  */
-public abstract class BuildThread<T extends Comparable<? super T> & Serializable> implements Runnable{
+public abstract class BuildThread<T extends Comparable<? super T> & Serializable & Indexable> implements Runnable{
     protected static Logger LOG = Logger.getLogger(BuildThread.class.getName());
     protected LinkedBlockingDeque<T> keysQueue;
     protected FileManager fileManager = FileManager.getInstance();

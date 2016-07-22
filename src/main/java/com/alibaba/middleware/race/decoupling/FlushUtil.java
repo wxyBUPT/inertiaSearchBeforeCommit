@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * Created by xiyuanbupt on 7/19/16.
  * 提供工具类,将本地缓存的索引同步到磁盘
  */
-public class FlushUtil<T extends Comparable<? super T> & Serializable> {
+public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexable> {
 
     private static Logger LOG = Logger.getLogger(FlushUtil.class.getName());
     private AtomicInteger flushCount ;
@@ -119,7 +119,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable> {
         LinkedList<DiskLoc> highLevelNodePosition;
         IndexTreeNode<T> currentParent = new IndexTreeNode<>();
         while(thisLevelNodePostion.size()!=1){
-            System.out.println(thisLevelNodePostion.size());
             highLevelNodePosition = new LinkedList<>();
             for(DiskLoc diskLoc:thisLevelNodePostion){
                 /**
@@ -132,7 +131,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable> {
                 }
                 IndexNode<T> indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
                 T minKey = indexNode.getMinKey();
-                System.out.println(minKey);
                 currentParent.appendData(minKey);
                 currentParent.addPointer(diskLoc);
             }

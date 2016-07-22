@@ -28,20 +28,13 @@ public class OrderSystemImpl implements OrderSystem {
     static private String nameSpace = "tianchi";
 
     //根据三个表里面的主键查询
-    final List<String> comparableKeysOrderingByOrderId;
-    final List<String> comparableKeysOrderingByGood;
-    final List<String> comparableKeysOrderingByBuyer;
+
 
     private FileManager fileManager;
+    private IndexNameSpace indexNameSpace;
 
     public OrderSystemImpl() {
-        comparableKeysOrderingByBuyer = new ArrayList<>();
-        comparableKeysOrderingByGood = new ArrayList<>();
-        comparableKeysOrderingByOrderId = new ArrayList<>();
 
-        comparableKeysOrderingByBuyer.add("buyerid");
-        comparableKeysOrderingByGood.add("goodid");
-        comparableKeysOrderingByOrderId.add("orderid");
     }
 
     /**
@@ -72,7 +65,7 @@ public class OrderSystemImpl implements OrderSystem {
          */
         IndexExtentManager.getInstance(storeFolders,nameSpace);
         FileManager.getInstance(storeFolders,nameSpace);
-
+        indexNameSpace = new IndexNameSpace();
         /**
          * set countdownlatch,wait all file read finish
          */
@@ -171,6 +164,73 @@ public class OrderSystemImpl implements OrderSystem {
         LOG.info("finish create all");
     }
 
+    private static class ResultImpl implements Result{
+        private long orderid;
+        private Row kvMap;
+
+        private ResultImpl(long orderid,Row kv){
+            this.orderid = orderid;
+            this.kvMap = kv;
+        }
+
+        static private ResultImpl createResultRow(Row orderData, Row buyerData,
+                                                  Row goodData, Set<String> queryingKeys) {
+            if (orderData == null || buyerData == null || goodData == null) {
+                throw new RuntimeException("Bad data!");
+            }
+            Row allkv = new Row();
+            long orderid;
+            try {
+                orderid = orderData.get("orderid").valueAsLong();
+            } catch (TypeException e) {
+                throw new RuntimeException("Bad data!");
+            }
+
+            for (RowKV kv : orderData.values()) {
+                if (queryingKeys == null || queryingKeys.contains(kv.key)) {
+                    allkv.put(kv.key(), kv);
+                }
+            }
+            for (RowKV kv : buyerData.values()) {
+                if (queryingKeys == null || queryingKeys.contains(kv.key)) {
+                    allkv.put(kv.key(), kv);
+                }
+            }
+            for (RowKV kv : goodData.values()) {
+                if (queryingKeys == null || queryingKeys.contains(kv.key)) {
+                    allkv.put(kv.key(), kv);
+                }
+            }
+            return new ResultImpl(orderid, allkv);
+        }
+
+        public KeyValue get(String key) {
+            return this.kvMap.get(key);
+        }
+
+        public KeyValue[] getAll() {
+            return kvMap.values().toArray(new KeyValue[0]);
+        }
+
+        public long orderId() {
+            return orderid;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("orderid: " + orderid + " {");
+            if (kvMap != null && !kvMap.isEmpty()) {
+                for (RowKV kv : kvMap.values()) {
+                    sb.append(kv.toString());
+                    sb.append(",\n");
+                }
+            }
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
     /**
      * 将一个collections 分成多个collections,每个collection 中至少有n 个元素
      *
@@ -197,7 +257,19 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Result queryOrder(long orderId, Collection<String> keys) {
-        return null;
+        Row orderData = indexNameSpace.queryOrderDataByOrderId(orderId);
+        if(orderData == null){
+            return null;
+        }
+        return createResultFromOrderData(orderData,createQueryKeys(keys));
+    }
+
+    private ResultImpl createResultFromOrderData(Row orderData,Collection<String> keys){
+        String buyerId = orderData.get("buyerid").valueAsString();
+        Row buyerData = indexNameSpace.queryBuyerDataByBuyerId(buyerId);
+        String goodid = orderData.get("goodid").valueAsString();
+        Row goodData = indexNameSpace.queryGoodDataByGoodId(goodid);
+        return ResultImpl.createResultRow(orderData,buyerData,goodData,createQueryKeys(keys));
     }
 
     @Override
@@ -223,6 +295,13 @@ public class OrderSystemImpl implements OrderSystem {
             }
         }
         return floderFiles;
+    }
+
+    private HashSet<String> createQueryKeys(Collection<String> keys) {
+        if (keys == null) {
+            return null;
+        }
+        return new HashSet<String>(keys);
     }
 
     public static void main(String[] args) throws IOException,
@@ -255,6 +334,18 @@ public class OrderSystemImpl implements OrderSystem {
 
         OrderSystem os = new OrderSystemImpl();
         os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+        System.out.println(os.queryOrder(2982388,new ArrayList<String>()));
+
+        System.out.println("\n查询订单号为" + 2982388
+                + "的订单的contactphone, buyerid, foo, done, price字段");
+        List<String> queryingKeys = new ArrayList<String>();
+        queryingKeys.add("contactphone");
+        queryingKeys.add("buyerid");
+        queryingKeys.add("foo");
+        queryingKeys.add("done");
+        queryingKeys.add("price");
+        Result result = os.queryOrder(2982388, queryingKeys);
+        System.out.println(result);
     }
 }
 

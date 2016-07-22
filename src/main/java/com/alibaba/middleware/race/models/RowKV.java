@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 public class RowKV implements Comparable<RowKV>,OrderSystem.KeyValue ,Serializable{
 
-    String key;
+    public String key;
     String rawValue;
     static private String booleanTrueValue = "true";
     static private String booleanFalseValue = "false";

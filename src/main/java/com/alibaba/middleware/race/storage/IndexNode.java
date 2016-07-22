@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Created by xiyuanbupt on 7/13/16.
  */
-abstract public class IndexNode<T extends Serializable> implements Serializable,Iterable<T>{
+abstract public class IndexNode<T extends Serializable & Comparable > implements Serializable,Iterable<T >{
 
     protected static Logger LOG = Logger.getLogger(IndexNode.class.getName());
 
