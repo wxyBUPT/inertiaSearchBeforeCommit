@@ -25,7 +25,6 @@ public class IndexExtentManager {
     protected int currentOff;
     protected int currentFileNum;
 
-
     /**
      * 用于记录索引标号与对应文件的关系记录
      */

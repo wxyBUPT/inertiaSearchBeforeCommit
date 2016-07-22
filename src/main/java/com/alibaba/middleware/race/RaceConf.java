@@ -19,4 +19,6 @@ public class RaceConf {
      * 测试环境使用
      */
     //public static final int INMEMORYMAXINDEXSIZE = 2400;
+
+    public static final boolean debug = true;
 }

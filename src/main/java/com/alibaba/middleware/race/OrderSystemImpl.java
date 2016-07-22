@@ -34,7 +34,24 @@ public class OrderSystemImpl implements OrderSystem {
     private IndexNameSpace indexNameSpace;
 
     public OrderSystemImpl() {
+        /**
+         * 时间
+         */
+        if(RaceConf.debug) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            Thread.sleep(30000);
+                        } catch (Exception e) {
 
+                        }
+                        LOG.info("time is ");
+                    }
+                }
+            }).start();
+        }
     }
 
     /**
@@ -257,6 +274,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Result queryOrder(long orderId, Collection<String> keys) {
+        System.out.println("queryOrder" + orderId);
         Row orderData = indexNameSpace.queryOrderDataByOrderId(orderId);
         if(orderData == null){
             return null;
@@ -280,6 +298,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Iterator<Result> queryOrdersByBuyer(long startTime, long endTime, String buyerid) {
+        System.out.println("queryQrdersByBuyer" + startTime + endTime + buyerid);
         final Deque<Row> orderDatas = indexNameSpace.queryOrderDataByBuyerCreateTime(startTime,endTime,buyerid);
 
         return new Iterator<Result>() {
@@ -306,6 +325,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public Iterator<Result> queryOrdersBySaler(String salerid, String goodid, final Collection<String> keys) {
+        System.out.println("queryOrdersBySaler" + salerid + goodid);
         final Row goodData = indexNameSpace.queryGoodDataByGoodId(goodid);
         String querySalerId = goodData.get("salerid").valueAsString();
         if(salerid.compareTo(querySalerId)!=0){
@@ -337,6 +357,7 @@ public class OrderSystemImpl implements OrderSystem {
 
     @Override
     public KeyValue sumOrdersByGood(String goodid, String key) {
+        System.out.println("queryOrdersByGood" + goodid);
         final Queue<Row> orderDatas = indexNameSpace.queryOrderDataByGoodid(goodid);
         List<ResultImpl> allData = new ArrayList<>(orderDatas.size());
         Row orderData = orderDatas.poll();
@@ -433,11 +454,18 @@ public class OrderSystemImpl implements OrderSystem {
 
         OrderSystem os = new OrderSystemImpl();
         os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
+        try{
+            Thread.sleep(2);
+        }catch (Exception e){
+
+        }
 
         // 用例
         System.out.println("\n查询买家ID为" + "ap-863b-6b7ec5507d6a" + "一定时间范围内的订单");
         Iterator<Result> it = os.queryOrdersByBuyer(1481395380,1485470748,"ap-863b-6b7ec5507d6a");
+        System.out.println("\n查询完成");
         while (it.hasNext()){
+            System.out.println("这是一个迭代器");
             System.out.println(it.next());
         }
     }
