@@ -13,7 +13,6 @@ public class BuildGoodIdThread extends BuildThread<ComparableKeysByGoodId>{
 
     @Override
     protected void printRawData(ComparableKeysByGoodId comparableKeysByGoodId) {
-        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByGoodId.getDataDiskLoc()));
     }
 
     public BuildGoodIdThread(AtomicInteger nRemain, CountDownLatch sendFinishSingle){

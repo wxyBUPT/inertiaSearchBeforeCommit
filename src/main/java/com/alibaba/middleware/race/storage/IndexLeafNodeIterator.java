@@ -19,7 +19,7 @@ public class IndexLeafNodeIterator <T extends Comparable<? super T>> implements 
         this.indexExtentManager = indexExtentManager;
         diskLocIterator = diskLocs.iterator();
         if(diskLocIterator.hasNext()){
-            currentIndexLeafNode = indexExtentManager.getIndexLeafNodeFromDiskLoc(diskLocIterator.next());
+            currentIndexLeafNode = indexExtentManager.getIndexLeafNodeFromDiskLocForInsert(diskLocIterator.next());
             tIterator = currentIndexLeafNode.iterator();
             if(tIterator.hasNext()){
                 next = tIterator.next();
@@ -47,7 +47,7 @@ public class IndexLeafNodeIterator <T extends Comparable<? super T>> implements 
             next = null;
             while (diskLocIterator.hasNext()){
                 DiskLoc diskLoc = diskLocIterator.next();
-                currentIndexLeafNode = indexExtentManager.getIndexLeafNodeFromDiskLoc(diskLoc);
+                currentIndexLeafNode = indexExtentManager.getIndexLeafNodeFromDiskLocForInsert(diskLoc);
                 tIterator = currentIndexLeafNode.iterator();
                 if(tIterator.hasNext()){
                     next = tIterator.next();

@@ -18,7 +18,6 @@ public class BuildOrderIdThread extends BuildThread<ComparableKeysByOrderId>{
 
     @Override
     protected void printRawData(ComparableKeysByOrderId comparableKeysByOrderId) {
-        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByOrderId.getDataDiskLoc()));
     }
 
     @Override

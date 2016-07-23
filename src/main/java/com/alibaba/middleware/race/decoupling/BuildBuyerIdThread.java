@@ -13,7 +13,6 @@ public class BuildBuyerIdThread extends BuildThread<ComparableKeysByBuyerId>{
 
     @Override
     protected void printRawData(ComparableKeysByBuyerId comparableKeysByBuyerId) {
-        System.out.println(fileManager.getRowFromDiskLoc(comparableKeysByBuyerId.getDataDiskLoc()));
     }
 
     @Override

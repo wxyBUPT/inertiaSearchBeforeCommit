@@ -129,7 +129,7 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
                     highLevelNodePosition.add(insertPosition);
                     currentParent = new IndexTreeNode<>();
                 }
-                IndexNode<T> indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+                IndexNode<T> indexNode = indexExtentManager.getIndexNodeFromDiskLocForInsert(diskLoc);
                 T minKey = indexNode.getMinKey();
                 currentParent.appendData(minKey);
                 currentParent.addPointer(diskLoc);
@@ -147,7 +147,7 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
 
     public IndexNode bCacheRoot(DiskLoc diskLoc){
         LOG.info("Cache root start ");
-        return indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+        return indexExtentManager.getIndexNodeFromDiskLocForInsert(diskLoc);
 
     }
 

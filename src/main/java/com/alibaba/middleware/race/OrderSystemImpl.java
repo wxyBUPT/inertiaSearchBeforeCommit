@@ -8,7 +8,6 @@ import com.alibaba.middleware.race.models.comparableKeys.*;
 import com.alibaba.middleware.race.storage.*;
 
 import java.io.*;
-import java.nio.MappedByteBuffer;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -90,7 +89,7 @@ public class OrderSystemImpl implements OrderSystem {
         /**
          * IndexExtentManager is a singleton , init it use paramter
          */
-        IndexExtentManager.getInstance(storeFolders,nameSpace);
+        IndexExtentManager.getInstance();
         FileManager.getInstance(storeFolders,nameSpace);
         indexNameSpace = new IndexNameSpace();
         /**
@@ -115,7 +114,7 @@ public class OrderSystemImpl implements OrderSystem {
                 @Override
                 public void run() {
                     try {
-                        new OrderFileHandler().handle(files, fileManager);
+                        new OrderFileHandler().handle(files);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -132,7 +131,7 @@ public class OrderSystemImpl implements OrderSystem {
                 @Override
                 public void run() {
                     try {
-                        new BuyerFileHandler().handle(files, fileManager);
+                        new BuyerFileHandler().handle(files );
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -149,7 +148,7 @@ public class OrderSystemImpl implements OrderSystem {
                 @Override
                 public void run() {
                     try {
-                        new GoodFileHandler().handle(files, fileManager);
+                        new GoodFileHandler().handle(files);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -473,63 +472,66 @@ public class OrderSystemImpl implements OrderSystem {
         }
 
         // 用例
-        long orderid = 2982388;
-        System.out.println("\n查询订单号为" + orderid + "的订单");
-        System.out.println(os.queryOrder(orderid, null));
+        if(RaceConf.debug) {
+            System.out.println("这些事测试用例");
+            long orderid = 2982388;
+            System.out.println("\n查询订单号为" + orderid + "的订单");
+            System.out.println(os.queryOrder(orderid, null));
 
-        System.out.println("\n查询订单号为" + orderid + "的订单，查询的keys为空，返回订单，但没有kv数据");
-        System.out.println(os.queryOrder(orderid, new ArrayList<String>()));
+            System.out.println("\n查询订单号为" + orderid + "的订单，查询的keys为空，返回订单，但没有kv数据");
+            System.out.println(os.queryOrder(orderid, new ArrayList<String>()));
 
-        System.out.println("\n查询订单号为" + orderid
-                + "的订单的contactphone, buyerid, foo, done, price字段");
-        List<String> queryingKeys = new ArrayList<String>();
-        queryingKeys.add("contactphone");
-        queryingKeys.add("buyerid");
-        queryingKeys.add("foo");
-        queryingKeys.add("done");
-        queryingKeys.add("price");
-        Result result = os.queryOrder(orderid, queryingKeys);
-        System.out.println(result);
-        System.out.println("\n查询订单号不存在的订单");
-        result = os.queryOrder(1111, queryingKeys);
-        if (result == null) {
-            System.out.println(1111 + " order not exist");
-        }
+            System.out.println("\n查询订单号为" + orderid
+                    + "的订单的contactphone, buyerid, foo, done, price字段");
+            List<String> queryingKeys = new ArrayList<String>();
+            queryingKeys.add("contactphone");
+            queryingKeys.add("buyerid");
+            queryingKeys.add("foo");
+            queryingKeys.add("done");
+            queryingKeys.add("price");
+            Result result = os.queryOrder(orderid, queryingKeys);
+            System.out.println(result);
+            System.out.println("\n查询订单号不存在的订单");
+            result = os.queryOrder(1111, queryingKeys);
+            if (result == null) {
+                System.out.println(1111 + " order not exist");
+            }
 
-        String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
-        long startTime = 1471025622;
-        long endTime = 1471219509;
-        System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
-        Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
-        while (it.hasNext()) {
-            System.out.println(it.next());
-        }
+            String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
+            long startTime = 1471025622;
+            long endTime = 1471219509;
+            System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
+            Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
+            while (it.hasNext()) {
+                System.out.println(it.next());
+            }
 
-        String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
-        String salerid = "almm_47766ea0-b8c0-4616-b3c8-35bc4433af13";
-        System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
-        it = os.queryOrdersBySaler(salerid, goodid, queryingKeys);
-        while (it.hasNext()) {
-            System.out.println(it.next());
-        }
+            String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
+            String salerid = "almm_47766ea0-b8c0-4616-b3c8-35bc4433af13";
+            System.out.println("\n查询商品id为" + goodid + "，商家id为" + salerid + "的订单");
+            it = os.queryOrdersBySaler(salerid, goodid, queryingKeys);
+            while (it.hasNext()) {
+                System.out.println(it.next());
+            }
 
-        goodid = "good_d191eeeb-fed1-4334-9c77-3ee6d6d66aff";
-        String attr = "app_order_33_0";
-        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-        System.out.println(os.sumOrdersByGood(goodid, attr));
+            goodid = "good_d191eeeb-fed1-4334-9c77-3ee6d6d66aff";
+            String attr = "app_order_33_0";
+            System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+            System.out.println(os.sumOrdersByGood(goodid, attr));
 
-        attr = "done";
-        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-        KeyValue sum = os.sumOrdersByGood(goodid, attr);
-        if (sum == null) {
-            System.out.println("由于该字段是布尔类型，返回值是null");
-        }
+            attr = "done";
+            System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+            KeyValue sum = os.sumOrdersByGood(goodid, attr);
+            if (sum == null) {
+                System.out.println("由于该字段是布尔类型，返回值是null");
+            }
 
-        attr = "foo";
-        System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-        sum = os.sumOrdersByGood(goodid, attr);
-        if (sum == null) {
-            System.out.println("由于该字段不存在，返回值是null");
+            attr = "foo";
+            System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+            sum = os.sumOrdersByGood(goodid, attr);
+            if (sum == null) {
+                System.out.println("由于该字段不存在，返回值是null");
+            }
         }
     }
 }
@@ -537,19 +539,12 @@ public class OrderSystemImpl implements OrderSystem {
 
 abstract class DataFileHandler{
 
-    protected FileManager fileManager;
-    protected MappedByteBuffer currentFile;
-    protected int currentFileNum;
-    protected int currentOff;
 
+    protected StoreExtentManager storeExtentManager;
     abstract void handleLine(String line) throws IOException,OrderSystem.TypeException,InterruptedException;
 
-    void handle(Collection<String> files,FileManager fileManager) throws InterruptedException,IOException,OrderSystem.TypeException{
-        this.fileManager = fileManager;
-        FileInfoBean fib = fileManager.createStoreFile();
-        currentFile = fib.getBuffer();
-        currentFileNum = fib.getfileN();
-        currentOff = 0;
+    void handle(Collection<String> files) throws InterruptedException,IOException,OrderSystem.TypeException{
+        this.storeExtentManager = StoreExtentManager.getInstance();
         for(String file:files) {
             BufferedReader bfr = createReader(file);
             try {
@@ -583,41 +578,19 @@ abstract class DataFileHandler{
         }
         return kvMap;
     }
-
-    /**
-     * Judge if current file can store %sbyte%(size) ,if can't create new file ;
-     * @param size
-     * @throws IOException
-     */
-    protected void updataFile(int size) throws IOException{
-        if(currentFile.remaining()<size+4){
-            FileInfoBean fib = fileManager.createStoreFile();
-            currentFile = fib.getBuffer();
-            currentFileNum = fib.getfileN();
-            currentOff = 0;
-        }
-    }
 }
 
 class GoodFileHandler extends DataFileHandler{
     @Override
     void handleLine(String line) throws IOException, OrderSystem.TypeException, InterruptedException {
         byte[] bytes = line.getBytes("UTF-8");
-        int size = bytes.length;
-        /**
-         * If file can't save more, create new File;
-         */
-        updataFile(size);
-        currentFile.put(bytes);
-        /**
-         * Create new diskLoc
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.GOODLINE,size);
-        currentOff += size;
-        String[] kvs = line.split("\t");
+        DiskLoc diskLoc = storeExtentManager.putBytes(bytes);
+        diskLoc.setStoreType(StoreType.GOODLINE);
         /**
          * Find goodid and salerid
          */
+
+        String[] kvs = line.split("\t");
         String goodid = null;
         String salerid = null;
         boolean shouldBreak = false;
@@ -662,17 +635,8 @@ class GoodFileHandler extends DataFileHandler{
 
     void handleRow(Row row) throws IOException,InterruptedException{
         byte[] byteRow = SerializationUtils.serialize(row);
-        int size = byteRow.length;
-        /**
-         * If file can't save more, create new File;
-         */
-        updataFile(size);
-        currentFile.put(byteRow);
-        /**
-         * Create new diskLoc
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff, StoreType.ROWDATA,size);
-        currentOff += size;
+        DiskLoc diskLoc = storeExtentManager.putBytes(byteRow);
+        diskLoc.setStoreType(StoreType.ROWDATA);
         /**
          * Put index info to queue
          */
@@ -689,18 +653,10 @@ class BuyerFileHandler extends DataFileHandler{
     @Override
     void handleLine(String line) throws IOException, OrderSystem.TypeException, InterruptedException {
         byte[] bytes = line.getBytes("UTF-8");
-        int size = bytes.length;
-        /**
-         * If file can't save more, create new File;
-         */
-        updataFile(size);
-        currentFile.put(bytes);
-        /**
-         * Create new diskLoc
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.GOODLINE,size);
-        currentOff += size;
+        DiskLoc diskLoc = storeExtentManager.putBytes(bytes);
+        diskLoc.setStoreType(StoreType.BUYERLINE);
         String[] kvs = line.split("\t");
+
         /**
          * Find buyerid
          */
@@ -726,17 +682,8 @@ class BuyerFileHandler extends DataFileHandler{
 
     void handleRow(Row row) throws IOException,InterruptedException {
         byte[] byteRow = SerializationUtils.serialize(row);
-        int size = byteRow.length;
-        /**
-         * If file can't save more, create new File;
-         */
-        updataFile(size);
-        currentFile.put(byteRow);
-        /**
-         * Create new diskLoc
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff, StoreType.ROWDATA,size);
-        currentOff += size;
+        DiskLoc diskLoc = storeExtentManager.putBytes(byteRow);
+        diskLoc.setStoreType(StoreType.ROWDATA);
         /**
          * Put index info to queue
          */
@@ -749,17 +696,8 @@ class OrderFileHandler extends DataFileHandler{
     @Override
     void handleLine(String line) throws IOException, OrderSystem.TypeException, InterruptedException {
         byte[] bytes = line.getBytes("UTF-8");
-        int size = bytes.length;
-        /**
-         * If file can't save more, create new File;
-         */
-        updataFile(size);
-        currentFile.put(bytes);
-        /**
-         * Create new diskLoc
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff,StoreType.GOODLINE,size);
-        currentOff += size;
+        DiskLoc diskLoc = storeExtentManager.putBytes(bytes);
+        diskLoc.setStoreType(StoreType.ORDERLINE);
         String[] kvs = line.split("\t");
         /**
          * Find goodid and salerid
@@ -825,17 +763,9 @@ class OrderFileHandler extends DataFileHandler{
 
     void handleRow(Row row) throws IOException,OrderSystem.TypeException,InterruptedException{
         byte[] byteRow = SerializationUtils.serialize(row);
-        int size = byteRow.length;
-        /**
-         * If file can't save more, create new File;
-         */
-        updataFile(size);
-        currentFile.put(byteRow);
-        /**
-         * Create new diskLoc
-         */
-        DiskLoc diskLoc = new DiskLoc(this.currentFileNum,this.currentOff, StoreType.ROWDATA,size);
-        currentOff += size;
+        DiskLoc diskLoc = storeExtentManager.putBytes(byteRow);
+        diskLoc.setStoreType(StoreType.ROWDATA);
+
         /**
          * Put index info to queue
          */

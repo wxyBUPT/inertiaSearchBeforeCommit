@@ -4,11 +4,9 @@ import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Created by xiyuanbupt on 7/20/16.
@@ -33,11 +31,11 @@ public class IndexNameSpace {
     public static IndexNode<ComparableKeysBySalerIdGoodId> mSalerGoodRoot;
 
     private IndexExtentManager indexExtentManager;
-    private FileManager fileManager;
+    private StoreExtentManager storeExtentManager;
 
     public IndexNameSpace(){
         indexExtentManager = IndexExtentManager.getInstance();
-        fileManager = FileManager.getInstance();
+        storeExtentManager = StoreExtentManager.getInstance();
     }
 
     public Row queryOrderDataByOrderId(Long orderId){
@@ -46,11 +44,11 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc == null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
+            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
-        return fileManager.getRowFromDiskLoc(diskLoc);
+        return storeExtentManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Row queryGoodDataByGoodId(String goodId){
@@ -59,11 +57,11 @@ public class IndexNameSpace {
         while (!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc==null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
+            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
-        return fileManager.getRowFromDiskLoc(diskLoc);
+        return storeExtentManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Row queryBuyerDataByBuyerId(String buyerId){
@@ -72,11 +70,11 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc==null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
+            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
-        return fileManager.getRowFromDiskLoc(diskLoc);
+        return storeExtentManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Deque<Row> queryOrderDataByBuyerCreateTime(long startTime,long endTime,String buyerid){
@@ -112,7 +110,7 @@ public class IndexNameSpace {
                 Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
                 DiskLoc diskLoc = diskLocs.poll();
                 while(diskLoc!=null){
-                    Row row = fileManager.getRowFromDiskLoc(diskLoc);
+                    Row row = storeExtentManager.getRowFromDiskLoc(diskLoc);
                     result.add(row);
                     diskLoc = diskLocs.poll();
                 }
@@ -120,7 +118,7 @@ public class IndexNameSpace {
                 Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
                 while (!diskLocs.isEmpty()){
                     DiskLoc diskLoc = diskLocs.remove();
-                    IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLocForSearch(diskLoc);
+                    IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
                     nodes.add(indexNode);
                 }
             }

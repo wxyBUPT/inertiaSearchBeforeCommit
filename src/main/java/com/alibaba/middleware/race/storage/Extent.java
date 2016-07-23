@@ -43,7 +43,7 @@ public class Extent {
      * @param fileChannel 所属文件的通道
      * @param position 在所属文件的位置
      * @param size buffer 的大小
-     * @param extentNo
+     * @param extentNo extent 的逻辑号码
      */
     public Extent(FileChannel fileChannel,Long position,Long size,int extentNo){
         this.fileChannel = fileChannel;
@@ -78,8 +78,8 @@ public class Extent {
 
     /**
      * 从对应位置ofs 长度为 size 的位置中获得Row 格式的数据
-     * @param ofs
-     * @param size
+     * @param ofs 从这个extent 的 ofs 位置获取
+     * @param size 获取的数据长度为 size
      * @return
      */
     public synchronized byte[] getBytesFromOfsAndSize(int ofs, int size){
@@ -90,8 +90,9 @@ public class Extent {
     }
 
     /**
-     * @param ofs
-     * @param size
+     * 如果之后还要想这个extent中插入数据则使用下面的方法,下面的方法目前没有作用
+     * @param ofs  相对便宜位置
+     * @param size 获得数据大小
      * @return
      */
     public synchronized byte[] getBytesFromOfsAndSizeForInsert(int ofs,int size){
@@ -105,7 +106,7 @@ public class Extent {
     /**
      * 向Extent 中添加bytes 数据,如果添加成功,返回 extent 的byteSize,如果添加不成功,则返回null
      * 插入的数据类型为notdefined
-     * @param bytes
+     * @param bytes 插入的bytes 数据
      * @return
      */
     public synchronized DiskLoc putBytes(byte[] bytes){
@@ -123,6 +124,10 @@ public class Extent {
     public synchronized int getRemainSize(){
         //每一个Extent 预留4bytes 的数据
         return size - buffer.position();
+    }
+
+    public int getExtentNo(){
+        return extentNo;
     }
 
 

@@ -20,7 +20,7 @@ public class RaceConf {
      */
     //public static final int INMEMORYMAXINDEXSIZE = 2400;
 
-    public static final boolean debug = false;
+    public static final boolean debug = true;
 
     /**
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
