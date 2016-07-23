@@ -1,10 +1,9 @@
 package com.alibaba.middleware.race.storage;
 
-import com.alibaba.middleware.race.models.Row;
-
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/22/16.
@@ -12,6 +11,8 @@ import java.nio.channels.FileChannel;
  * 在内存中维护这组Extent 信息
  */
 public class Extent {
+
+    private static Logger LOG = Logger.getLogger(Extent.class.getName());
 
     /**
      * 所属文件的信息
@@ -55,6 +56,24 @@ public class Extent {
         }
         this.extentNo = extentNo;
         this.size = size.intValue();
+        currentOfs = 0;
+    }
+
+    /**
+     * 用于完成文件创建显示的执行数据同步
+     */
+    public synchronized void finishConstruct(){
+        buffer.force();
+    }
+
+    public synchronized void makeReadOnly(FileChannel fileChannel){
+        this.fileChannel = fileChannel;
+        try {
+            buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, position, size.longValue());
+        }catch (IOException e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
     /**

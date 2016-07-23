@@ -14,8 +14,6 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 /**
@@ -53,20 +51,32 @@ public class FileManager {
     }
 
     /**
-     * 每个文件的大小都是 1G
+     * 存储原始数据的文件以及Extent 分开,第几个文件用于创建文件名称,第几个extent 用于记录唯一的extent 数目
      */
-    private static long singleFileSize = 1073741824;
     private int nStoreFiles;
+    private int nStoreExtents;
     private int nIndexFiles;
+    private int nIndexExtents;
+
+    /**
+     * nameSpace 用于给文件起名
+     */
     private String nameSpace;
+
+    /**
+     * 能够使用的磁盘空间
+     */
     private ArrayList<String> storeFloders;
 
     /**
-     * 用于记录文件标号和对应文件的关系记录
+     * 用于记录文件标号和对应文件的关系记录,因为文件管理是单例,故直接初始化
      */
     private HashMap<Integer,MappedByteBuffer> storeMap = new HashMap<>();
-    private HashMap<Integer,Lock> storeLockMap = new HashMap<>();
-
+    /**
+     * 用于记录Extent 标号,用于快速定位Extent 位置
+     */
+    private HashMap<Integer,Extent> extentMap = new HashMap<>();
+    private Long singleFileSize;
 
     public synchronized FileInfoBean createStoreFile() throws IOException {
         String dirBase = storeFloders.get(nStoreFiles%3);
@@ -78,7 +88,6 @@ public class FileManager {
         MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE,0,singleFileSize);
 
         storeMap.put(nStoreFiles,out);
-        storeLockMap.put(nStoreFiles,new ReentrantLock());
         FileInfoBean fib = new FileInfoBean(out,nStoreFiles);
 
         nStoreFiles ++;
