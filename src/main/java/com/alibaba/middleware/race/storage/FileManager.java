@@ -79,7 +79,7 @@ public class FileManager {
 
     public synchronized StoreFile createNewStoreFile() {
         String dirBase = storeFloders.get(nStoreFiles%3);
-        String dir = dirBase + "/" + nameSpace + nStoreFiles;
+        String dir = dirBase +   nameSpace + nStoreFiles;
         LOG.info("Create store file, file name is : " + dir);
         StoreFile storeFile = new StoreFile(dir,nStoreFiles);
         storeMap.put(nStoreFiles,storeFile);
@@ -89,7 +89,7 @@ public class FileManager {
 
     public synchronized StoreFile createNewIndexFile() {
         String dirBase = storeFloders.get(nIndexFiles%3);
-        String dir = dirBase + "/" + nameSpace + ".index." + nIndexFiles;
+        String dir = dirBase +   nameSpace + ".index." + nIndexFiles;
         LOG.info("Create index file , file name is : " + dir);
         StoreFile storeFile = new StoreFile(dir,nIndexFiles);
         indexMap.put(nIndexFiles,storeFile);

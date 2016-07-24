@@ -11,9 +11,9 @@ public class RaceConf {
      * 内存中索引存储最多key 的数量
      */
     /**
-     * 比赛环境使用
+     * 比赛环境使用,即一个avl 节点中最大容量为  ......
      */
-    public static final int INMEMORYMAXINDEXSIZE = 480000;
+    public static final int INMEMORYMAXINDEXSIZE = 2400000;
     /**
      * 测试环境使用
      */
@@ -24,6 +24,6 @@ public class RaceConf {
     /**
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
      */
-    public static final Long extentSize = (long)1024 * 1024 * 64;
-    public static final Integer nExtentPerFile = 32;
+    public static final Long extentSize = (long)1024 * 1024 * 128;
+    public static final Integer nExtentPerFile = 16;
 }
