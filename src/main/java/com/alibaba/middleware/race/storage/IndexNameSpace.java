@@ -164,7 +164,11 @@ public class IndexNameSpace {
                 if(diskLocs!=null) {
                     while (!diskLocs.isEmpty()) {
                         DiskLoc diskLoc = diskLocs.remove();
-                        IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+                        IndexNode cacheNode = orderLRU.get(diskLoc);
+                        IndexNode indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
+                        if(cacheNode==null&& !indexNode.isLeafNode()){
+                            orderLRU.put(diskLoc,indexNode);
+                        }
                         nodes.add(indexNode);
                     }
                 }
