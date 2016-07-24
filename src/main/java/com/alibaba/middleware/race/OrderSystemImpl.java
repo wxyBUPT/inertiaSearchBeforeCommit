@@ -210,6 +210,8 @@ public class OrderSystemImpl implements OrderSystem {
         LOG.info("finish copy file");
         indexDoneSignal.await();
         LOG.info("finish create all");
+        fileManager.finishConstruct();
+
     }
 
     private static class ResultImpl implements Result{

@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race.storage;
 
-import com.alibaba.middleware.race.models.Row;
-import com.alibaba.middleware.race.models.RowKV;
 
 import java.util.HashMap;
 import java.util.Random;

@@ -8,6 +8,10 @@ package com.alibaba.middleware.race.storage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -95,5 +99,34 @@ public class FileManager {
         indexMap.put(nIndexFiles,storeFile);
         nIndexFiles ++;
         return storeFile;
+    }
+
+    public synchronized void finishConstruct(){
+        ExecutorService es = Executors.newCachedThreadPool();
+        for(final Map.Entry<Integer,StoreFile> entry:storeMap.entrySet()){
+            es.execute(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    entry.getValue().finshConstruct();
+                }
+            })
+            );
+        }
+        for(final Map.Entry<Integer,StoreFile> entry:indexMap.entrySet()){
+            es.execute(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    entry.getValue().finshConstruct();
+                }
+            }));
+        }
+        es.shutdown();
+        try {
+            boolean finshed = es.awaitTermination(1, TimeUnit.HOURS);
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
     }
 }
