@@ -116,10 +116,12 @@ public class IndexNameSpace {
                 }
             }else {
                 Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
-                while (!diskLocs.isEmpty()){
-                    DiskLoc diskLoc = diskLocs.remove();
-                    IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
-                    nodes.add(indexNode);
+                if(diskLocs!=null) {
+                    while (!diskLocs.isEmpty()) {
+                        DiskLoc diskLoc = diskLocs.remove();
+                        IndexNode indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+                        nodes.add(indexNode);
+                    }
                 }
             }
         }

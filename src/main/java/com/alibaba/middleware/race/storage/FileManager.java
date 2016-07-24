@@ -4,7 +4,6 @@ package com.alibaba.middleware.race.storage;
  * Created by xiyuanbupt on 7/19/16.
  */
 
-import com.alibaba.middleware.race.models.Row;
 
 import java.util.ArrayList;
 import java.util.Collection;
