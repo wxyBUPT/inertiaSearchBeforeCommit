@@ -11,17 +11,17 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by xiyuanbupt on 7/24/16.
  */
-public class ConcurrentLruCacheForMinData<KEY, VALUE extends IndexNode> implements LRUCache<KEY,VALUE> {
+public abstract class ConcurrentLruCache<KEY, VALUE > implements LRUCache<KEY,VALUE> {
 
-    private final ReentrantLock lock = new ReentrantLock ();
-
-
-    private final Map<KEY, VALUE> map = new ConcurrentHashMap<>();
-    private final Deque<KEY> queue = new LinkedList<>();
-    private final int limit;
+    protected final ReentrantLock lock = new ReentrantLock ();
 
 
-    public ConcurrentLruCacheForMinData(int limit ) {
+    protected final Map<KEY, VALUE> map = new ConcurrentHashMap<>();
+    protected final Deque<KEY> queue = new LinkedList<>();
+    protected final int limit;
+
+
+    public ConcurrentLruCache(int limit ) {
         this.limit = limit;
     }
 
@@ -40,19 +40,10 @@ public class ConcurrentLruCacheForMinData<KEY, VALUE extends IndexNode> implemen
 
 
     @Override
-    public VALUE get ( KEY key ) {
-        VALUE value = map.get(key);
-        /**
-         * 非叶子节点优先级更高
-         */
-        if(value!=null && !value.isLeafNode()) {
-            removeThenAddKey(key);
-        }
-        return value;
-    }
+    abstract public VALUE get ( KEY key ) ;
 
 
-    private void addKey(KEY key) {
+    protected void addKey(KEY key) {
         lock.lock ();
         try {
             queue.addFirst ( key );
@@ -63,7 +54,7 @@ public class ConcurrentLruCacheForMinData<KEY, VALUE extends IndexNode> implemen
 
     }
 
-    private KEY removeLast( ) {
+    protected KEY removeLast( ) {
         lock.lock ();
         try {
             final KEY removedKey = queue.removeLast ();
@@ -73,7 +64,7 @@ public class ConcurrentLruCacheForMinData<KEY, VALUE extends IndexNode> implemen
         }
     }
 
-    private void removeThenAddKey(KEY key) {
+    protected void removeThenAddKey(KEY key) {
         lock.lock ();
         try {
             queue.removeFirstOccurrence ( key );
@@ -84,7 +75,7 @@ public class ConcurrentLruCacheForMinData<KEY, VALUE extends IndexNode> implemen
 
     }
 
-    private void removeFirstOccurrence(KEY key) {
+    protected void removeFirstOccurrence(KEY key) {
         lock.lock ();
         try {
             queue.removeFirstOccurrence ( key );
@@ -109,8 +100,4 @@ public class ConcurrentLruCacheForMinData<KEY, VALUE extends IndexNode> implemen
         return map.toString ();
     }
 
-    public static void main(String[] args){
-        LRUCache<Integer, IndexNode> cache = new ConcurrentLruCacheForMinData<>( 4 );
-        System.out.println(cache.get(1));
-    }
 }

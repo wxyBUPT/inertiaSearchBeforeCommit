@@ -1,7 +1,9 @@
 package com.alibaba.middleware.race.storage;
 
 import com.alibaba.middleware.race.RaceConf;
-import com.alibaba.middleware.race.cache.ConcurrentLruCacheForMinData;
+import com.alibaba.middleware.race.cache.ConcurrentLruCache;
+import com.alibaba.middleware.race.cache.ConcurrentLruCacheForBigData;
+import com.alibaba.middleware.race.cache.ConcurrentLruCacheForMidData;
 import com.alibaba.middleware.race.cache.LRUCache;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.comparableKeys.*;
@@ -53,6 +55,7 @@ public class IndexNameSpace {
      */
     private final LRUCache<DiskLoc,IndexNode> buyerLRU;
     private final LRUCache<DiskLoc,IndexNode> goodLRU;
+    private final LRUCache<DiskLoc,IndexNode> orderLRU;
 
     private IndexExtentManager indexExtentManager;
     private StoreExtentManager storeExtentManager;
@@ -60,8 +63,9 @@ public class IndexNameSpace {
     private IndexNameSpace(){
         indexExtentManager = IndexExtentManager.getInstance();
         storeExtentManager = StoreExtentManager.getInstance();
-        buyerLRU = new ConcurrentLruCacheForMinData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
-        goodLRU = new ConcurrentLruCacheForMinData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
+        buyerLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
+        goodLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
+        orderLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
     }
 
     public Row queryOrderDataByOrderId(Long orderId){
@@ -70,7 +74,14 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc == null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+            IndexNode cacheIndex = orderLRU.get(diskLoc);
+            indexNode = cacheIndex==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheIndex;
+            /**
+             * 如果节点是非叶子节点,并且缓存中没有数据
+             */
+            if(!indexNode.isLeafNode() && cacheIndex==null){
+                orderLRU.put(diskLoc,indexNode);
+            }
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;

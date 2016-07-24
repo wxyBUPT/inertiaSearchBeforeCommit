@@ -25,6 +25,11 @@ public class RaceConf {
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
      */
     public static final Long extentSize = (long)1024 * 1024 * 128;
+    public static final Integer nExtentPerFile ;
+    static {
+        if(debug)nExtentPerFile=16;
+        else nExtentPerFile=16;
+    }
 
     /**
      * 在内存中LRU 保存最大的indexNode 数量
@@ -43,9 +48,4 @@ public class RaceConf {
      */
     public static final Integer N_ORDER_INDEX_CACHE_COUNT = 10000;
 
-    public static final Integer nExtentPerFile ;
-    static {
-        if(debug)nExtentPerFile=16;
-        else nExtentPerFile=16;
-    }
 }
