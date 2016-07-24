@@ -14,7 +14,6 @@ public class IndexLeafNode<T extends Serializable & Comparable & Indexable> exte
     Queue<DiskLoc> searchBetween(T min, T max) {
         Queue<DiskLoc> diskLocs = new LinkedList<>();
         Integer start = binaryFindStart(min);
-        System.out.println("Start is " + start);
         if(start==null)return diskLocs;
         Integer end = binaryFindEnd(max);
         if(end==null)return diskLocs;
@@ -44,11 +43,14 @@ public class IndexLeafNode<T extends Serializable & Comparable & Indexable> exte
         int lo = 0;
         int hi = data.size() -1;
         int mid;
-        while(lo<=hi){
-            if(lo==hi)return lo;
+        while(lo<=hi ){
+            if(lo==hi && lo!=(data.size()-1)){
+                if(value.compareTo(data.get(lo))==0){
+                    return hi;
+                }
+                else return hi+1;
+            }
             mid = lo + (hi-lo)/2;
-            System.out.println("min is : " + lo + "mid is " + mid
-                    + "high is " + hi);
             int ret1 = value.compareTo(data.get(mid));
             if(mid==hi){
                 if(ret1==0)return mid;
@@ -67,7 +69,11 @@ public class IndexLeafNode<T extends Serializable & Comparable & Indexable> exte
         int lo = 0;
         int hi = data.size()-1;
         while(lo<=hi){
-            if(lo==hi)return lo;
+            if(lo==hi && lo!=0){
+                if(value.compareTo(data.get(lo))>=0)return lo;
+                else return lo-1;
+            }
+
             int mid = lo+(hi-lo)/2;
             int ret1 = value.compareTo(data.get(mid));
             if(mid== hi){
