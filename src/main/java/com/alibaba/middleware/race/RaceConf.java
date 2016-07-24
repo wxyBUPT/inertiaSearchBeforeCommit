@@ -37,12 +37,12 @@ public class RaceConf {
     /**
      * good index 缓存数量,原始文件中,buyer 是 good 数量的 2倍
      */
-    public static final Integer N_GOOD_INDEX_CACHE_COUNT = 4500;
+    public static final Integer N_GOOD_INDEX_CACHE_COUNT = 3000;
 
     /**
      * buyer index 缓存的数量
      */
-    public static final Integer N_BUYER_INDEX_CACHE_COUNT = 9000;
+    public static final Integer N_BUYER_INDEX_CACHE_COUNT = 6000;
     /**
      * order index 缓存的数量
      */
