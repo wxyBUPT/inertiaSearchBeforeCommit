@@ -479,9 +479,9 @@ public class OrderSystemImpl implements OrderSystem {
         //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.0.0");
         //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.1.1");
         //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.2.2");
-        storeFolders.add("./dir0");
-        storeFolders.add("./dir1");
-        storeFolders.add("./dir2");
+        storeFolders.add("./dir0/");
+        storeFolders.add("./dir1/");
+        storeFolders.add("./dir2/");
 
         OrderSystem os = new OrderSystemImpl();
         os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
