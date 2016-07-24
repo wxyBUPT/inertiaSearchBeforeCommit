@@ -111,7 +111,7 @@ public class OrderSystemImpl implements OrderSystem {
          */
         IndexExtentManager.getInstance();
         FileManager.getInstance(storeFolders,nameSpace);
-        indexNameSpace = new IndexNameSpace();
+        indexNameSpace = IndexNameSpace.getInstance();
         /**
          * set countdownlatch,wait all file read finish
          */

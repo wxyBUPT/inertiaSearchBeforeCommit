@@ -1,5 +1,8 @@
 package com.alibaba.middleware.race.storage;
 
+import com.alibaba.middleware.race.RaceConf;
+import com.alibaba.middleware.race.cache.ConcurrentLruCacheForMinData;
+import com.alibaba.middleware.race.cache.LRUCache;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 
@@ -11,8 +14,22 @@ import java.util.Queue;
 /**
  * Created by xiyuanbupt on 7/20/16.
  * 存储索引元数据
+ * 对 index node 的缓存放在这里
  */
 public class IndexNameSpace {
+
+    /**
+     * 单例
+     */
+    protected static IndexNameSpace indexNameSpace;
+
+    public static synchronized IndexNameSpace getInstance(){
+        if(indexNameSpace==null){
+            indexNameSpace = new IndexNameSpace();
+        }
+        return indexNameSpace;
+    }
+
     public static DiskLoc buyerRoot;
     public static DiskLoc goodRoot;
     public static DiskLoc orderRoot;
@@ -30,12 +47,21 @@ public class IndexNameSpace {
     public static IndexNode<ComparableKeysByGoodOrderId> mGoodOrderRoot;
     public static IndexNode<ComparableKeysBySalerIdGoodId> mSalerGoodRoot;
 
+    /**
+     * 对于buyer 和 good ,在lru 中缓存叶子节点与非叶子节点
+     * 只不过非叶子节点的优先级要高于叶子节点(由lru for mindata 负责)
+     */
+    private final LRUCache<DiskLoc,IndexNode> buyerLRU;
+    private final LRUCache<DiskLoc,IndexNode> goodLRU;
+
     private IndexExtentManager indexExtentManager;
     private StoreExtentManager storeExtentManager;
 
-    public IndexNameSpace(){
+    private IndexNameSpace(){
         indexExtentManager = IndexExtentManager.getInstance();
         storeExtentManager = StoreExtentManager.getInstance();
+        buyerLRU = new ConcurrentLruCacheForMinData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
+        goodLRU = new ConcurrentLruCacheForMinData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
     }
 
     public Row queryOrderDataByOrderId(Long orderId){
@@ -57,7 +83,12 @@ public class IndexNameSpace {
         while (!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc==null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+            /**
+             * 从缓存中获得
+             */
+            IndexNode cacheNode = goodLRU.get(diskLoc);
+            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
+            if(cacheNode==null)goodLRU.put(diskLoc,indexNode);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
@@ -70,7 +101,10 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc==null)return null;
-            indexNode = indexExtentManager.getIndexNodeFromDiskLoc(diskLoc);
+
+            IndexNode cacheNode = buyerLRU.get(diskLoc);
+            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
+            if(cacheNode==null)buyerLRU.put(diskLoc,indexNode);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;
