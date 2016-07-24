@@ -6,7 +6,7 @@ package com.alibaba.middleware.race;
 public class RaceConf {
 
     //磁盘扇区大小
-    public static final int INDEXNODEMAXSIZE = 1200;
+    public static final int INDEXNODEMAXSIZE = 800;
     /**
      * 内存中索引存储最多key 的数量
      */
