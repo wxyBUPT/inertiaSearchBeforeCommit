@@ -31,7 +31,7 @@ public class RaceConf {
      */
 
     //一个index 保存最大的索引量
-    public static final int INDEXNODEMAXSIZE = 530;
+    public static final int INDEXNODEMAXSIZE = 800;
     /**
      * 内存中索引存储最多key 的数量
      */
