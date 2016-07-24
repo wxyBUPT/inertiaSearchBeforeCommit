@@ -47,7 +47,6 @@ public class IndexTreeNode<T extends Serializable & Comparable & Indexable> exte
         //    if(ret<0)return pointer.get(i);
         //}
         //return pointer.lastElement();
-        if(lo==hi)return pointer.get(lo);
         return pointer.lastElement();
     }
 
