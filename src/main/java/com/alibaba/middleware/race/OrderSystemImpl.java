@@ -585,6 +585,21 @@ abstract class DataFileHandler{
         return new BufferedReader((new FileReader(file)));
     }
 
+    private Row createKVMapFromLine(String line){
+        String[] kvs = line.split("\t");
+        Row kvMap = new Row();
+        for (String rawkv : kvs) {
+            int p = rawkv.indexOf(':');
+            String key = rawkv.substring(0, p);
+            String value = rawkv.substring(p + 1);
+            if (key.length() == 0 || value.length() == 0) {
+                throw new RuntimeException("Bad data:" + line);
+            }
+            RowKV kv = new RowKV(key, value);
+            kvMap.put(kv.key(), kv);
+        }
+        return kvMap;
+    }
 }
 
 class GoodFileHandler extends DataFileHandler{
