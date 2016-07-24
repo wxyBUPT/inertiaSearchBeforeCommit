@@ -31,10 +31,11 @@ public class IndexTreeNode<T extends Serializable & Comparable & Indexable> exte
         int lo = 0;
         int hi = data.size() -1;
         int mid;
-        while (lo<hi){
+        while (lo<=hi){
+            if(lo==hi)return pointer.get(lo);
             mid = lo + (hi-lo)/2;
             if(mid==(size -1)){
-                return pointer.get(mid);
+                break;
             }
             int ret1 = t.compareTo(data.get(mid));
             int ret2 = t.compareTo(data.get(mid+1));
