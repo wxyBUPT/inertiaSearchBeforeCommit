@@ -83,23 +83,23 @@ public abstract class ExtentManager {
          * 如果没有插入成功,则当前的extent 已经满了,获得新的extent
          * 如果当前文件已经没有空闲的extent ,则更新当前文件
          */
-        if (!currentFiles.get(nDisk).hasNewExtent()) {
-            synchronized (this) {
+        synchronized (this) {
+            if (!currentFiles.get(nDisk).hasNewExtent()) {
                 currentFiles.set(nDisk, newFile());
             }
+            Extent extent = currentFiles.get(nDisk).getNewExtent();
+            if (extent == null) {
+                LOG.info("Some error happen, there is bug exist, the bug is extent is null");
+                System.exit(-1);
+            }
+            currentExtents.set(nDisk, extent);
+            diskLoc = extent.putBytes(bytes);
+            if (diskLoc == null) {
+                LOG.info("Some error happen, there is bug exist,the bug is diskLoc is null");
+                System.exit(-1);
+            }
+            return diskLoc;
         }
-        Extent extent = currentFiles.get(nDisk).getNewExtent();
-        if(extent == null){
-            LOG.info("Some error happen, there is bug exist, the bug is extent is null");
-            System.exit(-1);
-        }
-        currentExtents.set(nDisk,extent);
-        diskLoc = extent.putBytes(bytes);
-        if(diskLoc ==null){
-            LOG.info("Some error happen, there is bug exist,the bug is diskLoc is null");
-            System.exit(-1);
-        }
-        return diskLoc;
     }
 
 
