@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.storage;
 
+import com.alibaba.middleware.race.codec.RowCreator;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.RowKV;
 
@@ -42,23 +43,15 @@ public class StoreExtentManager extends ExtentManager{
         int size = diskLoc.getSize();
         byte[] rowByte = extentMap.get(_a).getBytesFromOfsAndSize(ofs,size);
         String line = new String(rowByte);
-        return createKVMapFromLine(line);
+        return RowCreator.createKVMapFromLine(line);
     }
 
-    private Row createKVMapFromLine(String line) {
-        String[] kvs = line.split("\t");
-        Row kvMap = new Row();
-        for (String rawkv : kvs) {
-            int p = rawkv.indexOf(':');
-            String key = rawkv.substring(0, p);
-            String value = rawkv.substring(p + 1);
-            if (key.length() == 0 || value.length() == 0) {
-                throw new RuntimeException("Bad data:" + line);
-            }
-            RowKV kv = new RowKV(key, value);
-            kvMap.put(kv.key(), kv);
-        }
-        return kvMap;
+    public String getLineFromDiskLoc(DiskLoc diskLoc){
+        int _a = diskLoc.get_a();
+        int ofs = diskLoc.getOfs();
+        int size = diskLoc.getSize();
+        byte[] rowByte = extentMap.get(_a).getBytesFromOfsAndSize(ofs,size);
+        return new String(rowByte);
     }
 
     public Row getRowFromDiskLocForInsert(DiskLoc diskLoc){
@@ -67,6 +60,6 @@ public class StoreExtentManager extends ExtentManager{
         int size = diskLoc.getSize();
         byte[] rowByte = extentMap.get(_a).getBytesFromOfsAndSizeForInsert(ofs,size);
         String line = new String(rowByte);
-        return createKVMapFromLine(line);
+        return RowCreator.createKVMapFromLine(line);
     }
 }

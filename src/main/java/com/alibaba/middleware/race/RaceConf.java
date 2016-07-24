@@ -47,5 +47,10 @@ public class RaceConf {
      * order index 缓存的数量
      */
     public static final Integer N_ORDER_INDEX_CACHE_COUNT = 10000;
+    /**
+     * buyer string 缓存的数量
+     */
+    public static final Integer N_BUYER_STRING_CACHE_COUNT = 100000;
+    public static final Integer N_GOOD_STRING_CACHE_COUNT = 100000;
 
 }

@@ -1,10 +1,10 @@
 package com.alibaba.middleware.race.storage;
 
 import com.alibaba.middleware.race.RaceConf;
-import com.alibaba.middleware.race.cache.ConcurrentLruCache;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForBigData;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForMidData;
 import com.alibaba.middleware.race.cache.LRUCache;
+import com.alibaba.middleware.race.codec.RowCreator;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 
@@ -57,6 +57,12 @@ public class IndexNameSpace {
     private final LRUCache<DiskLoc,IndexNode> goodLRU;
     private final LRUCache<DiskLoc,IndexNode> orderLRU;
 
+    /**
+     * 下面的缓存是 buyer 和 good 的缓存
+     */
+    private final LRUCache<String,String> goodStringLRU;
+    private final LRUCache<String,String> buyerStringLRU;
+
     private IndexExtentManager indexExtentManager;
     private StoreExtentManager storeExtentManager;
 
@@ -66,6 +72,8 @@ public class IndexNameSpace {
         buyerLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
         goodLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
         orderLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
+        goodStringLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_GOOD_STRING_CACHE_COUNT);
+        buyerStringLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_BUYER_STRING_CACHE_COUNT);
     }
 
     public Row queryOrderDataByOrderId(Long orderId){
@@ -89,37 +97,53 @@ public class IndexNameSpace {
     }
 
     public Row queryGoodDataByGoodId(String goodId){
-        ComparableKeysByGoodId key = new ComparableKeysByGoodId(goodId,null);
-        IndexNode<ComparableKeysByGoodId> indexNode = mGoodRoot;
-        while (!indexNode.isLeafNode()){
+        String cacheString = goodStringLRU.get(goodId);
+        String diskString;
+        if(cacheString==null) {
+            ComparableKeysByGoodId key = new ComparableKeysByGoodId(goodId, null);
+            IndexNode<ComparableKeysByGoodId> indexNode = mGoodRoot;
+            while (!indexNode.isLeafNode()) {
+                DiskLoc diskLoc = indexNode.search(key);
+                if (diskLoc == null) return null;
+                /**
+                 * 从缓存中获得
+                 */
+                IndexNode cacheNode = goodLRU.get(diskLoc);
+                indexNode = cacheNode == null ? indexExtentManager.getIndexNodeFromDiskLoc(diskLoc) : cacheNode;
+                if (cacheNode == null) goodLRU.put(diskLoc, indexNode);
+            }
             DiskLoc diskLoc = indexNode.search(key);
-            if(diskLoc==null)return null;
-            /**
-             * 从缓存中获得
-             */
-            IndexNode cacheNode = goodLRU.get(diskLoc);
-            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
-            if(cacheNode==null)goodLRU.put(diskLoc,indexNode);
+            if (diskLoc == null) return null;
+            diskString = storeExtentManager.getLineFromDiskLoc(diskLoc);
+            goodStringLRU.put(goodId,diskString);
+        }else {
+            diskString = cacheString;
         }
-        DiskLoc diskLoc = indexNode.search(key);
-        if(diskLoc==null)return null;
-        return storeExtentManager.getRowFromDiskLoc(diskLoc);
+        return RowCreator.createKVMapFromLine(diskString);
     }
 
     public Row queryBuyerDataByBuyerId(String buyerId){
-        ComparableKeysByBuyerId key = new ComparableKeysByBuyerId(buyerId,null);
-        IndexNode<ComparableKeysByBuyerId> indexNode = mBuyerRoot;
-        while(!indexNode.isLeafNode()){
-            DiskLoc diskLoc = indexNode.search(key);
-            if(diskLoc==null)return null;
+        String cacheString = buyerStringLRU.get(buyerId);
+        String diskString ;
+        if(cacheString!=null){
+            diskString = cacheString;
+        }else {
+            ComparableKeysByBuyerId key = new ComparableKeysByBuyerId(buyerId, null);
+            IndexNode<ComparableKeysByBuyerId> indexNode = mBuyerRoot;
+            while (!indexNode.isLeafNode()) {
+                DiskLoc diskLoc = indexNode.search(key);
+                if (diskLoc == null) return null;
 
-            IndexNode cacheNode = buyerLRU.get(diskLoc);
-            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
-            if(cacheNode==null)buyerLRU.put(diskLoc,indexNode);
+                IndexNode cacheNode = buyerLRU.get(diskLoc);
+                indexNode = cacheNode == null ? indexExtentManager.getIndexNodeFromDiskLoc(diskLoc) : cacheNode;
+                if (cacheNode == null) buyerLRU.put(diskLoc, indexNode);
+            }
+            DiskLoc diskLoc = indexNode.search(key);
+            if (diskLoc == null) return null;
+            diskString = storeExtentManager.getLineFromDiskLoc(diskLoc);
+            buyerStringLRU.put(buyerId,diskString);
         }
-        DiskLoc diskLoc = indexNode.search(key);
-        if(diskLoc==null)return null;
-        return storeExtentManager.getRowFromDiskLoc(diskLoc);
+        return RowCreator.createKVMapFromLine(diskString);
     }
 
     public Deque<Row> queryOrderDataByBuyerCreateTime(long startTime,long endTime,String buyerid){
