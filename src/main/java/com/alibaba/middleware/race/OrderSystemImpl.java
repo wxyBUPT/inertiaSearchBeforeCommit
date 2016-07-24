@@ -467,20 +467,20 @@ public class OrderSystemImpl implements OrderSystem {
         List<String> goodFiles = new ArrayList<>();
         List<String> storeFolders = new ArrayList<>();
 
-        orderFiles.add("order_records.txt");
-        buyerFiles.add("buyer_records.txt");
-        goodFiles.add("good_records.txt");
-        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.0");
-        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.1.1");
-        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.2.2");
-        //orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.3");
+        //orderFiles.add("order_records.txt");
+        //buyerFiles.add("buyer_records.txt");
+        //goodFiles.add("good_records.txt");
+        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.0");
+        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.1.1");
+        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.2.2");
+        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.3");
 
-        //buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.0.0");
-        //buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.1.1");
+        buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.0.0");
+        buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.1.1");
 
-        //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.0.0");
-        //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.1.1");
-        //goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.2.2");
+        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.0.0");
+        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.1.1");
+        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.2.2");
         storeFolders.add("./dir0/");
         storeFolders.add("./dir1/");
         storeFolders.add("./dir2/");

@@ -104,7 +104,7 @@ public class StoreFile {
         return null;
     }
 
-    public boolean hasNewExtent(){
+    public synchronized boolean hasNewExtent(){
         return newExtentIterator.hasNext();
     }
 

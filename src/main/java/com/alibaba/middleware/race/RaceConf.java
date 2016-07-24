@@ -24,10 +24,10 @@ public class RaceConf {
     /**
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
      */
-    public static final Long extentSize = (long)1024 * 1024 * 128;
+    public static final Long extentSize = (long)1024 * 1024 * 32;
     public static final Integer nExtentPerFile ;
     static {
-        if(debug)nExtentPerFile=16;
+        if(debug)nExtentPerFile=2;
         else nExtentPerFile=16;
     }
 
