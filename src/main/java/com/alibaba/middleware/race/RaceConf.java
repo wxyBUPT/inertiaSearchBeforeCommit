@@ -6,7 +6,6 @@ package com.alibaba.middleware.race;
 public class RaceConf {
 
     //磁盘扇区大小
-    private static final int DISKSIZE = 512;
     public static final int INDEXNODEMAXSIZE = 1200;
     /**
      * 内存中索引存储最多key 的数量
@@ -14,7 +13,7 @@ public class RaceConf {
     /**
      * 比赛环境使用
      */
-    public static final int INMEMORYMAXINDEXSIZE = 240000;
+    public static final int INMEMORYMAXINDEXSIZE = 360000;
     /**
      * 测试环境使用
      */
@@ -25,6 +24,6 @@ public class RaceConf {
     /**
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
      */
-    public static final Long extentSize = (long)1024 * 1024 * 128;
-    public static final Integer nExtentPerFile = 16;
+    public static final Long extentSize = (long)1024 * 1024 * 64;
+    public static final Integer nExtentPerFile = 32;
 }
