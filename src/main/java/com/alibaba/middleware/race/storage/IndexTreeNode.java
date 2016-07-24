@@ -32,7 +32,6 @@ public class IndexTreeNode<T extends Serializable & Comparable & Indexable> exte
         int hi = data.size() -1;
         int mid;
         while (lo<=hi){
-            if(lo==hi)return pointer.get(lo);
             mid = lo + (hi-lo)/2;
             if(mid==(size -1)){
                 break;
@@ -48,6 +47,7 @@ public class IndexTreeNode<T extends Serializable & Comparable & Indexable> exte
         //    if(ret<0)return pointer.get(i);
         //}
         //return pointer.lastElement();
+        if(lo==hi)return pointer.get(lo);
         return pointer.lastElement();
     }
 
