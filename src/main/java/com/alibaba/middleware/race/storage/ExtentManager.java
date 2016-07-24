@@ -93,7 +93,7 @@ public abstract class ExtentManager {
                 System.exit(-1);
             }
             currentExtents.set(nDisk, extent);
-            diskLoc = extent.putBytes(bytes);
+            diskLoc = currentExtents.get(nDisk).putBytes(bytes);
             if (diskLoc == null) {
                 LOG.info("Some error happen, there is bug exist,the bug is diskLoc is null");
                 System.exit(-1);
