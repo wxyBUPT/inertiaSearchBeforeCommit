@@ -14,8 +14,6 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
     // TODO: make these optional based on some sort of 'debug' flag?
     // at the very least, make them read-only properties
     protected long countInsertions;
-    protected int countSingleRotations;
-    protected int countDoubleRotations;
     protected int elementCount ;
 
     /**
@@ -26,8 +24,6 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
     public AvlTree (){
         root = null;
         countInsertions = 0;
-        countSingleRotations = 0;
-        countDoubleRotations = 0;
     }
     /**
      * Find the maximum value among the given numbers.
@@ -90,11 +86,9 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
             if (height (t.left) - height (t.right) == 2){
                 if (x.compareTo (t.left.element) < 0){
                     t = rotateWithLeftChild (t);
-                    countSingleRotations++;
                 }
                 else {
                     t = doubleWithLeftChild (t);
-                    countDoubleRotations++;
                 }
             }
         }
@@ -104,11 +98,9 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
             if ( height (t.right) - height (t.left) == 2)
                 if (x.compareTo (t.right.element) > 0){
                     t = rotateWithRightChild (t);
-                    countSingleRotations++;
                 }
                 else{
                     t = doubleWithRightChild (t);
-                    countDoubleRotations++;
                 }
         }
         else {
