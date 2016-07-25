@@ -61,17 +61,28 @@ public class RaceConf {
      */
     /**
      * good index 缓存数量,原始文件中,buyer 是 good 数量的 2倍
+     * 大约估计
+     * 如果按照一个node 容量800 good 的leafnode + treenode 的数量大约为6258
+     * 其中leafnode 数量约为 6250 treenode 数量约为 8
+     * buyer 的leafnode + treenode 的数量为 11900
+     * 其中leafNode 数量约为 11250 treenode 数量约为 14
+     * 因为buyer 和 good 的数据量较小,缓存所有b 树节点,效率已经接近Hash 查找
+     * order 的非leafnode 的数量为 750 个
+     * leafNode 的数量为 600000 个
+     *
      */
-    public static final Integer N_GOOD_INDEX_CACHE_COUNT = 10000;
+    //因为good key 值比较小,故叶子节点和非叶子节点全部存储
+    public static final Integer N_GOOD_INDEX_CACHE_COUNT = 6300;
 
     /**
-     * buyer index 缓存的数量
+     * buyer index 缓存的数量,因为buyer 的数量要多一点,故不全部存储于内存
      */
-    public static final Integer N_BUYER_INDEX_CACHE_COUNT = 20000;
+    public static final Integer N_BUYER_INDEX_CACHE_COUNT = 9000;
     /**
      * order index 缓存的数量
+     * order 数据量较多,只存储一部分的leaf node
      */
-    public static final Integer N_ORDER_INDEX_CACHE_COUNT = 20000;
+    public static final Integer N_ORDER_INDEX_CACHE_COUNT = 15000;
 
     public static void main(String[] args){
         int TESTCOUNT = 1200;
