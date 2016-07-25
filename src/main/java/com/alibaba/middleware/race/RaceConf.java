@@ -38,7 +38,7 @@ public class RaceConf {
     /**
      * 比赛环境使用,即一个binarySearch Tree 中节点中最大容量为  ......
      */
-    public static final int INMEMORYMAXINDEXSIZE = 2600000;
+    public static final int INMEMORYMAXINDEXSIZE = 3000000;
     /**
      * 测试环境使用
      */
