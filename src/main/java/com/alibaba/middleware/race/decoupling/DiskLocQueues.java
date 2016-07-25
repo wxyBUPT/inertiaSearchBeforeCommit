@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.decoupling;
 
+import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 
 import java.util.concurrent.LinkedBlockingDeque;
@@ -10,12 +11,12 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class DiskLocQueues {
 
-    public static final LinkedBlockingDeque<ComparableKeysByBuyerId> comparableKeysByBuyerIdQueue = new LinkedBlockingDeque<>(100000);
-    public static final LinkedBlockingDeque<ComparableKeysByGoodId> comparableKeysByGoodIdQueue = new LinkedBlockingDeque<>(100000);
-    public static final LinkedBlockingDeque<ComparableKeysByOrderId> comparableKeysByOrderId = new LinkedBlockingDeque<>(100000);
+    public static final LinkedBlockingDeque<ComparableKeysByBuyerId> comparableKeysByBuyerIdQueue = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
+    public static final LinkedBlockingDeque<ComparableKeysByGoodId> comparableKeysByGoodIdQueue = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
+    public static final LinkedBlockingDeque<ComparableKeysByOrderId> comparableKeysByOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
 
-    public static final LinkedBlockingDeque<ComparableKeysBySalerIdGoodId> comparableKeysBySalerIdGoodId = new LinkedBlockingDeque<>(100000);
+    public static final LinkedBlockingDeque<ComparableKeysBySalerIdGoodId> comparableKeysBySalerIdGoodId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
 
-    public static final LinkedBlockingDeque<ComparableKeysByBuyerCreateTimeOrderId> comparableKeysByBuyerCreateTimeOrderId = new LinkedBlockingDeque<>(100000);
-    public static final LinkedBlockingDeque<ComparableKeysByGoodOrderId> comparableKeysByGoodOrderId = new LinkedBlockingDeque<>(100000);
+    public static final LinkedBlockingDeque<ComparableKeysByBuyerCreateTimeOrderId> comparableKeysByBuyerCreateTimeOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
+    public static final LinkedBlockingDeque<ComparableKeysByGoodOrderId> comparableKeysByGoodOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
 }

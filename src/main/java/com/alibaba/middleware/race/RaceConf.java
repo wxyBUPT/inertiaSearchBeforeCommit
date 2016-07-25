@@ -47,6 +47,11 @@ public class RaceConf {
     public static final boolean debug = true;
 
     /**
+     * 在内存中缓存key值最大的容量
+     */
+    public static final int INMEMORYMAXQUEUESIZE = 80000;
+
+    /**
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
      */
     public static final Long extentSize = (long)1024 * 1024 * 128;
