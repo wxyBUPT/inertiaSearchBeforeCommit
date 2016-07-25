@@ -77,6 +77,10 @@ public class OrderSystemImpl implements OrderSystem {
                         sb.append(",  Total memory (Mbytes): " +
                                 Runtime.getRuntime().totalMemory()/1024L/1024L);
                         LOG.info(sb.toString());
+                        /**
+                         * Get LRU cache status
+                         */
+                        LOG.info(indexNameSpace.getInfo());
                     }
                 }
             }).start();

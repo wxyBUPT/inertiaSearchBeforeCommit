@@ -177,4 +177,16 @@ public class IndexNameSpace {
         return result;
     }
 
+    /**
+     * 获得Namespace 的状态,用于打日志
+     * @return
+     */
+    public String getInfo(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("buyerLRU  ###  size : " + buyerLRU.size() + ", limit: "+buyerLRU.getLimit());
+        sb.append("goodLRU  ### size: " + goodLRU.size() + ", limit: " + goodLRU.getLimit());
+        sb.append("orderLRU  ### size: " + orderLRU.size() + ", limit: " + orderLRU.getLimit());
+        return sb.toString();
+    }
+
 }

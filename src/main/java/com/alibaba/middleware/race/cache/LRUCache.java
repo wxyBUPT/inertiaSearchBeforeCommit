@@ -12,4 +12,6 @@ public interface LRUCache<KEY,VALUE> {
     void remove ( KEY key );
 
     int size ();
+
+    int getLimit();
 }

@@ -64,6 +64,11 @@ public abstract class ConcurrentLruCache<KEY, VALUE > implements LRUCache<KEY,VA
         }
     }
 
+    @Override
+    public int getLimit() {
+        return limit;
+    }
+
     protected void removeThenAddKey(KEY key) {
         lock.lock ();
         try {
