@@ -85,9 +85,9 @@ public class RaceConf {
     public static final Integer N_BUYER_INDEX_CACHE_COUNT = 9000;
     /**
      * order index 缓存的数量
-     * order 数据量较多,只存储一部分的leaf node
+     * order 数据量较多,只存储非叶子节点
      */
-    public static final Integer N_ORDER_INDEX_CACHE_COUNT = 15000;
+    public static final Integer N_ORDER_INDEX_CACHE_COUNT = 2500;
 
     public static void main(String[] args){
         int TESTCOUNT = 1200;

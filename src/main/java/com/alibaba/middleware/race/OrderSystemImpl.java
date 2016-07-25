@@ -367,12 +367,17 @@ public class OrderSystemImpl implements OrderSystem {
     public Iterator<Result> queryOrdersBySaler(String salerid, String goodid, final Collection<String> keys) {
         queryOrderBySalerCount.incrementAndGet();
         final Row goodData = indexNameSpace.queryGoodDataByGoodId(goodid);
-        String querySalerId = goodData.get("salerid").valueAsString();
-        if(salerid.compareTo(querySalerId)!=0){
-            return null;
+        final Queue<Row> orderDatas;
+        if(goodData==null){
+            orderDatas = null;
+        }else {
+            String querySalerId = goodData.get("salerid").valueAsString();
+            if(salerid.compareTo(querySalerId)!=0){
+                orderDatas = null;
+            }else {
+                orderDatas = indexNameSpace.queryOrderDataByGoodid(goodid);
+            }
         }
-        final Queue<Row> orderDatas = indexNameSpace.queryOrderDataByGoodid(goodid);
-
         return new Iterator<Result>() {
             @Override
             public boolean hasNext() {
@@ -474,9 +479,9 @@ public class OrderSystemImpl implements OrderSystem {
         List<String> goodFiles = new ArrayList<>();
         List<String> storeFolders = new ArrayList<>();
 
-        //orderFiles.add("order_records.txt");
-        //buyerFiles.add("buyer_records.txt");
-        //goodFiles.add("good_records.txt");
+        orderFiles.add("order_records.txt");
+        buyerFiles.add("buyer_records.txt");
+        goodFiles.add("good_records.txt");
         orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.0");
         orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.1.1");
         orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.2.2");
@@ -526,14 +531,16 @@ public class OrderSystemImpl implements OrderSystem {
                 System.out.println(1111 + " order not exist");
             }
 
+            Iterator<Result> it;
             String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
             long startTime = 1471025622;
             long endTime = 1471219509;
             System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
-            Iterator<Result> it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
+            it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
             while (it.hasNext()) {
                 System.out.println(it.next());
             }
+
 
             String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
             String salerid = "almm_47766ea0-b8c0-4616-b3c8-35bc4433af13";
