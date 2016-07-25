@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.cache;
 
-import com.alibaba.middleware.race.storage.IndexNode;
 
 import java.util.Deque;
 import java.util.LinkedList;

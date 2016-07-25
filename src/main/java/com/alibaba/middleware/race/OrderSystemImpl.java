@@ -47,44 +47,47 @@ public class OrderSystemImpl implements OrderSystem {
                 public void run() {
                     while (true) {
                         try {
-                            Thread.sleep(50000);
+                            Thread.sleep(5000);
                         } catch (Exception e) {
-
+                            logStatus();
                         }
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("queryOrderBySalerCount is : " ).append(queryOrderBySalerCount);
-                        sb.append(",  queryOrderByBuyerCount is : " ).append(queryOrderByBuyerCount);
-                        sb.append(",  queryOrderCount is : "  ).append(queryOrderCount);
-                        sb.append(",  queryOrderByGoodCount is : ").append(queryOrderByGoodCount);
-                        LOG.info(sb.toString());
-
-                        sb.setLength(0);
-                          /* Total number of processors or cores available to the JVM */
-                        sb.append("Available processors (cores): " +
-                                Runtime.getRuntime().availableProcessors());
-
-  /* Total amount of free memory available to the JVM */
-                        sb.append(",  Free memory (Mbytes): " +
-                                Runtime.getRuntime().freeMemory()/1024L/1024L);
-
-  /* This will return Long.MAX_VALUE if there is no preset limit */
-                        long maxMemory = Runtime.getRuntime().maxMemory();
-  /* Maximum amount of memory the JVM will attempt to use */
-                        sb.append(",  Maximum memory (Mbytes): " +
-                                (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory/1024L/1024L));
-
-  /* Total memory currently in use by the JVM */
-                        sb.append(",  Total memory (Mbytes): " +
-                                Runtime.getRuntime().totalMemory()/1024L/1024L);
-                        LOG.info(sb.toString());
-                        /**
-                         * Get LRU cache status
-                         */
-                        LOG.info(indexNameSpace.getInfo());
                     }
                 }
             }).start();
         }
+    }
+
+    private void logStatus(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("queryOrderBySalerCount is : " ).append(queryOrderBySalerCount);
+        sb.append(",  queryOrderByBuyerCount is : " ).append(queryOrderByBuyerCount);
+        sb.append(",  queryOrderCount is : "  ).append(queryOrderCount);
+        sb.append(",  queryOrderByGoodCount is : ").append(queryOrderByGoodCount);
+        LOG.info(sb.toString());
+
+        sb.setLength(0);
+                          /* Total number of processors or cores available to the JVM */
+        sb.append("Available processors (cores): " +
+                Runtime.getRuntime().availableProcessors());
+
+  /* Total amount of free memory available to the JVM */
+        sb.append(",  Free memory (Mbytes): " +
+                Runtime.getRuntime().freeMemory()/1024L/1024L);
+
+  /* This will return Long.MAX_VALUE if there is no preset limit */
+        long maxMemory = Runtime.getRuntime().maxMemory();
+  /* Maximum amount of memory the JVM will attempt to use */
+        sb.append(",  Maximum memory (Mbytes): " +
+                (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory/1024L/1024L));
+
+  /* Total memory currently in use by the JVM */
+        sb.append(",  Total memory (Mbytes): " +
+                Runtime.getRuntime().totalMemory()/1024L/1024L);
+        LOG.info(sb.toString());
+        /**
+         * Get LRU cache status
+         */
+        LOG.info(indexNameSpace.getInfo());
     }
 
     /**
