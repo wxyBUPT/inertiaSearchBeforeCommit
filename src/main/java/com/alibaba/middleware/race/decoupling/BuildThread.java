@@ -17,6 +17,7 @@ import java.util.logging.Logger;
  */
 public abstract class BuildThread<T extends Comparable<? super T> & Serializable & Indexable> implements Runnable{
     protected static Logger LOG = Logger.getLogger(BuildThread.class.getName());
+    //缓存索引的有界队列
     protected LinkedBlockingDeque<T> keysQueue;
     protected FileManager fileManager = FileManager.getInstance();
 
