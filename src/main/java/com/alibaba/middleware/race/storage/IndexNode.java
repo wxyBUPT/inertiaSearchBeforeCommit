@@ -21,6 +21,8 @@ abstract public class IndexNode<T extends Serializable & Comparable > implements
     //每一个node 最大容量
     protected int maxsize = RaceConf.INDEXNODEMAXSIZE;
 
+    //插入数量
+
     public boolean isLeafNode(){
         return this.getClass().getName().trim().equals("com.alibaba.middleware.race.storage.IndexLeafNode");
     }
@@ -42,7 +44,6 @@ abstract public class IndexNode<T extends Serializable & Comparable > implements
             throw new RuntimeException("node is full ,there is some bug may be");
         }
         data.add(t);
-
         return this;
     }
     /**
@@ -58,7 +59,7 @@ abstract public class IndexNode<T extends Serializable & Comparable > implements
     }
 
     public T getDataAt(int index){
-        return (T)data.elementAt(index);
+        return data.elementAt(index);
     }
 
     @Override

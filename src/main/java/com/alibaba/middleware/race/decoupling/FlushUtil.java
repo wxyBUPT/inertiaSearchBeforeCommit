@@ -68,7 +68,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
             }else {
                  //key值相同,一定是出现了bug
                 LOG.info("Some bug happen , key is same");
-                System.exit(-1);
             }
         }
 

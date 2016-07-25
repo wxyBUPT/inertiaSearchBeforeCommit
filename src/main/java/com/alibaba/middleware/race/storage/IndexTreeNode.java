@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.storage;
 
+import com.alibaba.middleware.race.RaceConf;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -77,9 +79,8 @@ public class IndexTreeNode<T extends Serializable & Comparable & Indexable> exte
     }
 
     public synchronized IndexTreeNode addPointer(DiskLoc diskLoc){
-        if(isFull()){
+        if(pointer.size() == maxsize){
             LOG.info("some error happend , pointer element count is greater than max count");
-            System.exit(-1);
         }
         pointer.add(diskLoc);
         return this;
