@@ -49,8 +49,8 @@ public class OrderSystemImpl implements OrderSystem {
                         try {
                             Thread.sleep(5000);
                         } catch (Exception e) {
-                            logStatus();
                         }
+                        logStatus();
                     }
                 }
             }).start();
