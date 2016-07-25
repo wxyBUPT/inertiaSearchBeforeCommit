@@ -53,19 +53,24 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
          * Use to report condition
          * for debug
          */
-        //new Thread(new Runnable() {
-        //    @Override
-        //    public void run() {
-        //        while(true){
-        //            try{
-        //                Thread.sleep(2000);
-        //            }catch (Exception e){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                }catch (Exception e){
 
-        //            }
-        //            LOG.info("nRemain is : " + nRemain + ", inMemoryTree size is :" + inMemoryTree.getElementCount());
-        //        }
-        //    }
-        //}).start();
+                }
+                while(true){
+                    LOG.info(inMemoryTree.getInfo());
+                    try{
+                        Thread.sleep(20000);
+                    }catch (Exception e){
+
+                    }
+                }
+            }
+        }).start();
     }
 
     @Override

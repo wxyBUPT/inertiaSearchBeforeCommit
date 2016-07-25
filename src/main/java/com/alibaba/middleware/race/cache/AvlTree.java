@@ -50,6 +50,13 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
         root = null;
     }
 
+    public String getInfo(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("MemoryAvlTree### countInsertions: " ).append(countInsertions);
+        sb.append(", elementCount:  ").append(elementCount);
+        return sb.toString();
+    }
+
     /**
      * Insert an element into the tree.
      *
