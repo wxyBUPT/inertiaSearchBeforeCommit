@@ -36,9 +36,9 @@ public class RaceConf {
      * 内存中索引存储最多key 的数量
      */
     /**
-     * 比赛环境使用,即一个avl 节点中最大容量为  ......
+     * 比赛环境使用,即一个binarySearch Tree 中节点中最大容量为  ......
      */
-    public static final int INMEMORYMAXINDEXSIZE = 1600000;
+    public static final int INMEMORYMAXINDEXSIZE = 2600000;
     /**
      * 测试环境使用
      */

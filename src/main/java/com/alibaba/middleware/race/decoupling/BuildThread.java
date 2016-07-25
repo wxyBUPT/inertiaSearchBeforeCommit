@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.LimitedAvlTree;
+import com.alibaba.middleware.race.cache.LimitedBinarySearchTree;
 import com.alibaba.middleware.race.storage.*;
 
 import java.io.Serializable;
@@ -19,7 +20,6 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
     protected static Logger LOG = Logger.getLogger(BuildThread.class.getName());
     //缓存索引的有界队列
     protected LinkedBlockingDeque<T> keysQueue;
-    protected FileManager fileManager = FileManager.getInstance();
 
     /**
      * 用来判断原始数据复制线程是否完成数据复制
@@ -32,7 +32,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
     /**
      * 一个有限的avlTree,实现思想类似于lsm tree,为lsm tree 的 C0
      */
-    protected LimitedAvlTree<T> inMemoryTree;
+    protected LimitedBinarySearchTree<T> inMemoryTree;
     /**
      * 记录向磁盘中同步了多少次数据
      */
@@ -46,7 +46,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
 
     public BuildThread(final AtomicInteger nRemain, CountDownLatch sendFinishSingle){
         this.nRemain = nRemain;
-        this.inMemoryTree = new LimitedAvlTree<>(RaceConf.INMEMORYMAXINDEXSIZE);
+        this.inMemoryTree = new LimitedBinarySearchTree<>(RaceConf.INMEMORYMAXINDEXSIZE);
         this.sortedKeysInDisk = new LinkedList<>();
         this.flushUtil = new FlushUtil<>();
         this.sendFinishSingle = sendFinishSingle;

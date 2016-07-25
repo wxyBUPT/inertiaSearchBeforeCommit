@@ -24,6 +24,7 @@ public class AvlTree<T extends Comparable<? super T>> implements Iterable<T>{
     public AvlTree (){
         root = null;
         countInsertions = 0;
+        elementCount = 0;
     }
     /**
      * Find the maximum value among the given numbers.
