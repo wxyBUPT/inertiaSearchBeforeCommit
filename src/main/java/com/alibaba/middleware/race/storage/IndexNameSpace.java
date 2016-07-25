@@ -74,12 +74,12 @@ public class IndexNameSpace {
         while(!indexNode.isLeafNode()){
             DiskLoc diskLoc = indexNode.search(key);
             if(diskLoc == null)return null;
-            IndexNode cacheIndex = orderLRU.get(diskLoc);
-            indexNode = cacheIndex==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheIndex;
+            IndexNode cacheNode = orderLRU.get(diskLoc);
+            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
             /**
              * 如果节点是非叶子节点,并且缓存中没有数据
              */
-            if(!indexNode.isLeafNode() && cacheIndex==null){
+            if(cacheNode==null && !indexNode.isLeafNode() ){
                 orderLRU.put(diskLoc,indexNode);
             }
         }

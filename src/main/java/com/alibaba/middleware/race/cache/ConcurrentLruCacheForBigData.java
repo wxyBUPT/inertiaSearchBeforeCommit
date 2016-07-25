@@ -17,4 +17,11 @@ public class ConcurrentLruCacheForBigData<KEY,VALUE> extends ConcurrentLruCache<
         }
         return value;
     }
+
+    public static void main(String[] args){
+        ConcurrentLruCache<Integer,Integer> lruCache = new ConcurrentLruCacheForBigData<>(4);
+        lruCache.put(1,2);
+        System.out.println(lruCache.size());
+
+    }
 }
