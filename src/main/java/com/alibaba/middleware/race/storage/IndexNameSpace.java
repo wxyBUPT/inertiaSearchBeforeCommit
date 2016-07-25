@@ -65,7 +65,7 @@ public class IndexNameSpace {
         storeExtentManager = StoreExtentManager.getInstance();
         buyerLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
         goodLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
-        orderLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
+        orderLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
     }
 
     public Row queryOrderDataByOrderId(Long orderId){
@@ -80,7 +80,7 @@ public class IndexNameSpace {
             /**
              * 如果节点是非叶子节点,并且缓存中没有数据
              */
-            if(cacheNode==null) orderLRU.put(diskLoc,indexNode);
+            if(cacheNode==null && !indexNode.isLeafNode()) orderLRU.put(diskLoc,indexNode);
         }
         DiskLoc diskLoc = indexNode.search(key);
         if(diskLoc==null)return null;

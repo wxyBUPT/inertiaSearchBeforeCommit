@@ -145,6 +145,11 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
         return thisLevelNodePostion.getFirst();
     }
 
+    /**
+     * 根据root 的diskloc 的位置返回跟节点信息,缓存indextreenode 的跟节点
+     * @param diskLoc
+     * @return
+     */
     public IndexNode bCacheRoot(DiskLoc diskLoc){
         LOG.info("Cache root start ");
         return indexExtentManager.getIndexNodeFromDiskLocForInsert(diskLoc);
