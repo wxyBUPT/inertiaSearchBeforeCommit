@@ -4,6 +4,7 @@ package com.alibaba.middleware.race.storage;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -29,7 +30,7 @@ public abstract class ExtentManager {
     /**
      * 已知所有被创建的Extent
      */
-    protected HashMap<Integer,Extent> extentMap;
+    protected ConcurrentHashMap<Integer,Extent> extentMap;
 
     private Random random ;
 
@@ -40,7 +41,7 @@ public abstract class ExtentManager {
          */
         currentFiles = new Vector<>(3);
         currentExtents = new Vector<>(3);
-        extentMap = new HashMap<>();
+        extentMap = new ConcurrentHashMap<>();
         for(int i = 0;i<3;i++){
             StoreFile storeFile = newFile();
             currentFiles.add(storeFile);
@@ -93,6 +94,8 @@ public abstract class ExtentManager {
                 System.exit(-1);
             }
             currentExtents.set(nDisk, extent);
+            int extentNo = extent.getExtentNo();
+            extentMap.put(extentNo,extent);
             diskLoc = currentExtents.get(nDisk).putBytes(bytes);
             if (diskLoc == null) {
                 LOG.info("Some error happen, there is bug exist,the bug is diskLoc is null");

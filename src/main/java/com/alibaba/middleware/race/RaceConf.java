@@ -86,6 +86,7 @@ public class RaceConf {
     /**
      * order index 缓存的数量
      * order 数据量较多,只存储非叶子节点
+     * 因为有三个对应索引,所以数量是750 的三倍
      */
     public static final Integer N_ORDER_INDEX_CACHE_COUNT = 2500;
 
