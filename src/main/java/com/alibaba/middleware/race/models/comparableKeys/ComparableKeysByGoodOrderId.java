@@ -52,7 +52,10 @@ public class ComparableKeysByGoodOrderId implements Indexable,Comparable<Compara
 
     @Override
     public int hashCode(){
-        Integer res = goodId.hashCode() + orderId.hashCode();
+        /**
+         * 保证同样的good 都落在一个桶里面
+         */
+        Integer res = goodId.hashCode() ;
         return Math.abs(res);
     }
 }

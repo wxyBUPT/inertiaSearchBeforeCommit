@@ -57,7 +57,11 @@ public class ComparableKeysByBuyerCreateTimeOrderId implements Indexable,Compara
 
     @Override
     public int hashCode(){
-        Integer res = buyerId.hashCode()+createTime.hashCode();
+        /**
+         * 因为是为了范围查询,一个buyer 应该路由到一个extent 中去
+         * 即保证相同的buyer 落在一个桶里面
+         */
+        Integer res = buyerId.hashCode();
         return Math.abs(res);
     }
 

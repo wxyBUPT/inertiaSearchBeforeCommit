@@ -15,8 +15,6 @@ public class DiskLocQueues {
     public static final LinkedBlockingDeque<ComparableKeysByGoodId> comparableKeysByGoodIdQueue = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
     public static final LinkedBlockingDeque<ComparableKeysByOrderId> comparableKeysByOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
 
-    public static final LinkedBlockingDeque<ComparableKeysBySalerIdGoodId> comparableKeysBySalerIdGoodId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
-
     public static final LinkedBlockingDeque<ComparableKeysByBuyerCreateTimeOrderId> comparableKeysByBuyerCreateTimeOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
     public static final LinkedBlockingDeque<ComparableKeysByGoodOrderId> comparableKeysByGoodOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
 
@@ -30,7 +28,6 @@ public class DiskLocQueues {
         sb.append("buyerId: ").append(comparableKeysByBuyerIdQueue.size());
         sb.append(", goodId: ").append(comparableKeysByGoodIdQueue.size());
         sb.append(", orderId: ").append(comparableKeysByOrderId.size());
-        sb.append(", salerGoodId: ").append(comparableKeysBySalerIdGoodId.size());
         sb.append(", buyerCreateTimeOrder: ").append(comparableKeysByBuyerCreateTimeOrderId.size());
         sb.append(", goodOrder: ").append(comparableKeysByGoodOrderId.size());
         return sb.toString();

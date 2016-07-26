@@ -91,6 +91,11 @@ public class RaceConf {
      */
     public static final Integer N_ORDER_INDEX_CACHE_COUNT = 2500;
 
+    /**
+     * 根据 hash 分片个个数
+     */
+    public static final Integer N_PARTITION = 64;
+
     public static void main(String[] args){
         int TESTCOUNT = 1200;
         IndexLeafNode<ComparableKeysByBuyerCreateTimeOrderId> inIndexLeafNode =
@@ -132,6 +137,12 @@ public class RaceConf {
         System.out.println(new ComparableKeysByBuyerId(
                 "ap-83a7-9c56d34045aa",new DiskLoc(0,0,StoreType.GOODLINE,0)).hashCode());
         System.out.println(new ComparableKeysByBuyerCreateTimeOrderId("ap-83a7-9c56d34045ab",
+                1L, 2L, new DiskLoc(0, 0, StoreType.GOODLINE, 0)).hashCode());
+        System.out.println(new ComparableKeysByBuyerCreateTimeOrderId("ap-83a7-9c56d34045ab",
+                1L, 2L, new DiskLoc(0, 0, StoreType.GOODLINE, 0)).hashCode());
+        System.out.println(new ComparableKeysByBuyerCreateTimeOrderId("ap-83a7-9c56d34045ab",
+                1L, 2L, new DiskLoc(0, 0, StoreType.GOODLINE, 0)).hashCode());
+        System.out.println(new ComparableKeysByBuyerCreateTimeOrderId("ap-83a1-9c56d34045ab",
                 1L, 2L, new DiskLoc(0, 0, StoreType.GOODLINE, 0)).hashCode());
 
     }

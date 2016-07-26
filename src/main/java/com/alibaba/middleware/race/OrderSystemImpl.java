@@ -128,7 +128,7 @@ public class OrderSystemImpl implements OrderSystem {
         final AtomicInteger nGoodRemain = new AtomicInteger(0);
         final AtomicInteger nBuyerRemain = new AtomicInteger(0);
 
-        final CountDownLatch indexDoneSignal = new CountDownLatch(6);
+        final CountDownLatch indexDoneSignal = new CountDownLatch(5);
 
 
 
@@ -194,7 +194,6 @@ public class OrderSystemImpl implements OrderSystem {
         new Thread(new BuildGoodIdThread(nGoodRemain,indexDoneSignal)).start();
         new Thread(new BuildGoodOrderIdThread(nOrderRemain,indexDoneSignal)).start();
         new Thread(new BuildOrderIdThread(nOrderRemain,indexDoneSignal)).start();
-        new Thread(new BuildSalerGoodIdThread(nGoodRemain,indexDoneSignal)).start();
         /**
          * For debug
          */
@@ -628,8 +627,6 @@ class GoodFileHandler extends DataFileHandler{
 
         String[] kvs = line.split("\t");
         String goodid = null;
-        String salerid = null;
-        boolean shouldBreak = false;
         for(String kv: kvs){
             int p = kv.indexOf(':');
             String key = kv.substring(0, p);
@@ -637,36 +634,16 @@ class GoodFileHandler extends DataFileHandler{
             if (key.length() == 0 || value.length() == 0) {
                 throw new RuntimeException("Bad data:" + line);
             }
-            switch (key)
-            {
-                case "goodid":
-                    goodid = value;
-                    if(salerid!=null){
-                        shouldBreak = true;
-                    }
-                    break;
-                case "salerid":
-                    salerid = value;
-                    if(goodid!=null){
-                        shouldBreak = true;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if(shouldBreak){
+            if(key.equals("goodid")){
+                goodid = value;
                 break;
             }
         }
-        if(goodid==null || salerid==null){
-            throw new RuntimeException("Bad data! goodid " + goodid + ", salerid: " + salerid);
+        if(goodid==null ){
+            throw new RuntimeException("Bad data! goodid " + goodid  );
         }
         ComparableKeysByGoodId goodIdKeys = new ComparableKeysByGoodId(goodid,diskLoc);
         DiskLocQueues.comparableKeysByGoodIdQueue.put(goodIdKeys);
-        ComparableKeysBySalerIdGoodId salerGoodKeys = new ComparableKeysBySalerIdGoodId(
-                salerid,goodid,diskLoc
-        );
-        DiskLocQueues.comparableKeysBySalerIdGoodId.put(salerGoodKeys);
     }
 
     void handleRow(Row row) throws IOException,InterruptedException{
@@ -678,10 +655,6 @@ class GoodFileHandler extends DataFileHandler{
          */
         ComparableKeysByGoodId goodIdKeys = new ComparableKeysByGoodId(row.get("goodid").valueAsString(),diskLoc);
         DiskLocQueues.comparableKeysByGoodIdQueue.put(goodIdKeys);
-        ComparableKeysBySalerIdGoodId salerGoodKeys = new ComparableKeysBySalerIdGoodId(
-                row.get("salerid").valueAsString(),row.get("goodid").valueAsString(),diskLoc
-        );
-        DiskLocQueues.comparableKeysBySalerIdGoodId.put(salerGoodKeys);
     }
 }
 

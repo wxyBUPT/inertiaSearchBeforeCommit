@@ -5,11 +5,13 @@ import com.alibaba.middleware.race.cache.ConcurrentLruCache;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForBigData;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForMidData;
 import com.alibaba.middleware.race.cache.LRUCache;
+import com.alibaba.middleware.race.decoupling.PartionBuildThread;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 
 import java.io.Serializable;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -37,17 +39,24 @@ public class IndexNameSpace {
     public static DiskLoc orderRoot;
     public static DiskLoc buyerCreateTimeOrderRoot;
     public static DiskLoc goodOrderRoot;
-    public static DiskLoc salerGoodRoot;
 
     /**
      * 为了每次查询减少一次磁盘访问,将rootNode 取出到内存
+     * buyer 和good 不使用 Hash
      */
     public static IndexNode<ComparableKeysByBuyerId> mBuyerRoot;
     public static IndexNode<ComparableKeysByGoodId> mGoodRoot;
+
+
+    /**
+     * order 所有key 值分片管理
+     */
+    public static HashMap<Integer,IndexPartition<ComparableKeysByOrderId>> mOrderPartion;
+    public static HashMap<Integer,IndexPartition<ComparableKeysByBuyerCreateTimeOrderId>> mBuyerCreateTimeOrderPartion;
+    public static HashMap<Integer,IndexPartition<ComparableKeysByGoodOrderId>> mGoodOrderPartions;
     public static IndexNode<ComparableKeysByOrderId> mOrderRoot;
     public static IndexNode<ComparableKeysByBuyerCreateTimeOrderId> mBuyerCreateTimeOrderRoot;
     public static IndexNode<ComparableKeysByGoodOrderId> mGoodOrderRoot;
-    public static IndexNode<ComparableKeysBySalerIdGoodId> mSalerGoodRoot;
 
     /**
      * 对于buyer 和 good ,在lru 中缓存叶子节点与非叶子节点

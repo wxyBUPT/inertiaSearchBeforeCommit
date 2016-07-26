@@ -2,7 +2,6 @@ package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.LimitedAvlTree;
-import com.alibaba.middleware.race.cache.LimitedBinarySearchTree;
 import com.alibaba.middleware.race.storage.*;
 
 import java.io.Serializable;
