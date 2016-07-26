@@ -55,4 +55,10 @@ public class ComparableKeysByBuyerCreateTimeOrderId implements Indexable,Compara
         return sb.toString();
     }
 
+    @Override
+    public int hashCode(){
+        Integer res = buyerId.hashCode()+createTime.hashCode();
+        return Math.abs(res);
+    }
+
 }

@@ -50,4 +50,10 @@ public class ComparableKeysBySalerIdGoodId implements Indexable,Comparable<Compa
     public String toString(){
         return "ComparableKeysBySalerIdGoodId: salerId: " + salerId + ", goodId: " + goodId;
     }
+
+    @Override
+    public int hashCode(){
+        Integer res = salerId.hashCode() + goodId.hashCode();
+        return Math.abs(res);
+    }
 }

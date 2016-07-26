@@ -37,4 +37,10 @@ public class ComparableKeysByOrderId implements Indexable,Comparable<ComparableK
     public String toString(){
         return "ComparableKeysByOrderId: orderId: " + orderId;
     }
+
+    @Override
+    public int hashCode(){
+        Integer res = orderId.hashCode();
+        return Math.abs(res);
+    }
 }

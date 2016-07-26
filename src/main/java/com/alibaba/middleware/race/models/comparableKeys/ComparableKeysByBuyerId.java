@@ -35,4 +35,10 @@ public class ComparableKeysByBuyerId implements Indexable,Comparable<ComparableK
     public String toString(){
         return "ComparableKeysByBuyerId: buyerId : " + buyerId;
     }
+
+    @Override
+    public int hashCode(){
+        Integer res = buyerId.hashCode();
+        return Math.abs(res);
+    }
 }

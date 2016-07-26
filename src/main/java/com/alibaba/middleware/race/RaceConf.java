@@ -38,7 +38,7 @@ public class RaceConf {
     /**
      * 比赛环境使用,即一个binarySearch Tree 中节点中最大容量为  ......
      */
-    public static final int INMEMORYMAXINDEXSIZE = 3000000;
+    public static final int INMEMORYMAXINDEXSIZE = 2500000;
     /**
      * 测试环境使用
      */
@@ -48,8 +48,9 @@ public class RaceConf {
 
     /**
      * 在内存中缓存key值最大的容量
+     * 对于orderfile ,如果一个线程是满的,另外两个线程都会被阻塞
      */
-    public static final int INMEMORYMAXQUEUESIZE = 80000;
+    public static final int INMEMORYMAXQUEUESIZE = 800000;
 
     /**
      * 一个Extent 的大小,以及一个文件中Extent 中的数目
@@ -126,5 +127,12 @@ public class RaceConf {
         System.out.println("一个 " + RaceConf.INDEXNODEMAXSIZE + "的goodOrderID长度是" + bytes.length/1024 + "KB");
         bytes = SerializationUtils.serialize(byBuyerIds);
         System.out.println("一个 " + RaceConf.INDEXNODEMAXSIZE + "的buyerId长度是" + bytes.length/1024 + "KB");
+        System.out.println(new ComparableKeysByBuyerCreateTimeOrderId("ap-83a7-9c56d34045aa",
+                1L, 2L, new DiskLoc(0, 0, StoreType.GOODLINE, 0)).hashCode());
+        System.out.println(new ComparableKeysByBuyerId(
+                "ap-83a7-9c56d34045aa",new DiskLoc(0,0,StoreType.GOODLINE,0)).hashCode());
+        System.out.println(new ComparableKeysByBuyerCreateTimeOrderId("ap-83a7-9c56d34045ab",
+                1L, 2L, new DiskLoc(0, 0, StoreType.GOODLINE, 0)).hashCode());
+
     }
 }

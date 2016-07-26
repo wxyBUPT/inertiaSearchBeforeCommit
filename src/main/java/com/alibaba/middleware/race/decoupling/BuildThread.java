@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.RaceConf;
-import com.alibaba.middleware.race.cache.LimitedAvlTree;
 import com.alibaba.middleware.race.cache.LimitedBinarySearchTree;
 import com.alibaba.middleware.race.storage.*;
 
@@ -15,6 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/20/16.
+ * BuildThread 会记录不同分片的
  */
 public abstract class BuildThread<T extends Comparable<? super T> & Serializable & Indexable> implements Runnable{
     protected static Logger LOG = Logger.getLogger(BuildThread.class.getName());
@@ -64,6 +64,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
                 }
                 while(true){
                     LOG.info(inMemoryTree.getInfo());
+                    LOG.info(DiskLocQueues.getInfo());
                     try{
                         Thread.sleep(20000);
                     }catch (Exception e){
@@ -85,6 +86,8 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
                         LOG.info("finsh insert all index data of "  );
                         break;
                     }
+                    //避免插入空数据
+                    continue;
                 }
                 insertKeys(keys);
             }catch (Exception e){

@@ -49,4 +49,10 @@ public class ComparableKeysByGoodOrderId implements Indexable,Comparable<Compara
     public DiskLoc getDataDiskLoc() {
         return diskLoc;
     }
+
+    @Override
+    public int hashCode(){
+        Integer res = goodId.hashCode() + orderId.hashCode();
+        return Math.abs(res);
+    }
 }

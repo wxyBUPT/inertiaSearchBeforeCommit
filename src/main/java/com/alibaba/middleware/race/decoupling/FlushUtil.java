@@ -18,8 +18,43 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
 
     private static Logger LOG = Logger.getLogger(FlushUtil.class.getName());
     private AtomicInteger flushCount ;
+    private AtomicInteger moveCount;
 
     private IndexExtentManager indexExtentManager;
+
+    public LinkedList<DiskLoc> moveIteratorDataToDisk(Iterator<T> from){
+        LOG.info("Start move, move data to disk");
+        moveCount.incrementAndGet();
+        LinkedList<DiskLoc> newDiskLocks = new LinkedList<>();
+
+        IndexLeafNode<T> currentIndexLeaf = new IndexLeafNode<>();
+
+        T fromNext;
+        if(from.hasNext()){
+            fromNext = from.next();
+        }else {
+            fromNext = null;
+        }
+
+        while(fromNext!=null){
+            if(currentIndexLeaf.isFull()){
+                DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+                newDiskLocks.add(diskLoc);
+                currentIndexLeaf = new IndexLeafNode<>();
+            }
+            currentIndexLeaf.appendData(fromNext);
+            if(from.hasNext()){
+                fromNext = from.next();
+            }else {
+                fromNext = null;
+            }
+        }
+
+        //put the latest indexLeaf to disk and save
+        DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+        newDiskLocks.add(diskLoc);
+        return newDiskLocks;
+    }
     public LinkedList<DiskLoc> flushAvlToDisk(BinarySearchTree<T> from , LinkedList<DiskLoc> diskLocs){
         LOG.info("Strat flush, notice if this type of log is too much ,You must can't pass, current flush Count is " +
         flushCount.incrementAndGet());

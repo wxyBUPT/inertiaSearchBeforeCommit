@@ -19,4 +19,21 @@ public class DiskLocQueues {
 
     public static final LinkedBlockingDeque<ComparableKeysByBuyerCreateTimeOrderId> comparableKeysByBuyerCreateTimeOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
     public static final LinkedBlockingDeque<ComparableKeysByGoodOrderId> comparableKeysByGoodOrderId = new LinkedBlockingDeque<>(RaceConf.INMEMORYMAXQUEUESIZE);
+
+    /**
+     * 获得队列状态信息
+     * @return
+     */
+    public static String getInfo(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("CacheQueue Size##### ");
+        sb.append("buyerId: ").append(comparableKeysByBuyerIdQueue.size());
+        sb.append(", goodId: ").append(comparableKeysByGoodIdQueue.size());
+        sb.append(", orderId: ").append(comparableKeysByOrderId.size());
+        sb.append(", salerGoodId: ").append(comparableKeysBySalerIdGoodId.size());
+        sb.append(", buyerCreateTimeOrder: ").append(comparableKeysByBuyerCreateTimeOrderId.size());
+        sb.append(", goodOrder: ").append(comparableKeysByGoodOrderId.size());
+        return sb.toString();
+    }
+
 }

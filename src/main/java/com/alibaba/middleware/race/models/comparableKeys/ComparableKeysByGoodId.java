@@ -33,4 +33,10 @@ public class ComparableKeysByGoodId implements Indexable,Comparable<ComparableKe
         return dataDiskLoc;
     }
 
+    @Override
+    public int hashCode(){
+        Integer res = goodId.hashCode();
+        return Math.abs(res);
+    }
+
 }
