@@ -25,6 +25,7 @@ public class BuyerTimeOrderPartionBuildThread extends  PartionBuildThread<Compar
             myPartions.get(entry.getKey()).addSortedKeys(
                     flushUtil.moveIteratorDataToDisk(entry.getValue().iterator())
             );
+            entry.getValue().makeEmpty();
         }
     }
 

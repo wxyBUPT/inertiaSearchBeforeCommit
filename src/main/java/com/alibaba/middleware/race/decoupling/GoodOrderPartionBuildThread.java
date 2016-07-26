@@ -29,7 +29,9 @@ public class GoodOrderPartionBuildThread extends PartionBuildThread<ComparableKe
             myPartions.get(entry.getKey()).addSortedKeys(
                     flushUtil.moveIteratorDataToDisk(entry.getValue().iterator())
             );
+            entry.getValue().makeEmpty();
         }
+
     }
 
     @Override
