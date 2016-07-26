@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.cache.AvlTree;
 import com.alibaba.middleware.race.cache.BinarySearchTree;
+import com.alibaba.middleware.race.cache.LimitedAvlTree;
 import com.alibaba.middleware.race.storage.*;
 
 import java.io.Serializable;
@@ -55,7 +56,7 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
         newDiskLocks.add(diskLoc);
         return newDiskLocks;
     }
-    public LinkedList<DiskLoc> flushAvlToDisk(BinarySearchTree<T> from , LinkedList<DiskLoc> diskLocs){
+    public LinkedList<DiskLoc> flushAvlToDisk(LimitedAvlTree<T> from , LinkedList<DiskLoc> diskLocs){
         LOG.info("Strat flush, notice if this type of log is too much ,You must can't pass, current flush Count is " +
         flushCount.incrementAndGet());
         LinkedList<DiskLoc> newDiskLocs = new LinkedList<>();

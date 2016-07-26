@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.RaceConf;
+import com.alibaba.middleware.race.cache.LimitedAvlTree;
 import com.alibaba.middleware.race.cache.LimitedBinarySearchTree;
 import com.alibaba.middleware.race.storage.*;
 
@@ -32,7 +33,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
     /**
      * 一个有限的avlTree,实现思想类似于lsm tree,为lsm tree 的 C0
      */
-    protected LimitedBinarySearchTree<T> inMemoryTree;
+    protected LimitedAvlTree<T> inMemoryTree;
     /**
      * 记录向磁盘中同步了多少次数据
      */
@@ -46,7 +47,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
 
     public BuildThread(final AtomicInteger nRemain, CountDownLatch sendFinishSingle){
         this.nRemain = nRemain;
-        this.inMemoryTree = new LimitedBinarySearchTree<>(RaceConf.INMEMORYMAXINDEXSIZE);
+        this.inMemoryTree = new LimitedAvlTree<>(RaceConf.INMEMORYMAXINDEXSIZE);
         this.sortedKeysInDisk = new LinkedList<>();
         this.flushUtil = new FlushUtil<>();
         this.sendFinishSingle = sendFinishSingle;
