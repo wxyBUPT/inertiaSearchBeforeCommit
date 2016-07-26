@@ -195,5 +195,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
     public FlushUtil(){
         this.indexExtentManager = IndexExtentManager.getInstance();
         flushCount = new AtomicInteger(0);
+        moveCount = new AtomicInteger(0);
     }
 }

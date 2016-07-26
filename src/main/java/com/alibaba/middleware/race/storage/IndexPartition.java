@@ -115,6 +115,14 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         return levelTraversal(rootIndex,startKey,endKey);
     }
 
+    /**
+     * 范围寻找
+     * @param root
+     * @param minKey
+     * @param maxKey
+     * @param <V>
+     * @return
+     */
     private <V extends Comparable&Serializable&Indexable> LinkedList<Row> levelTraversal(IndexNode root, V minKey, V maxKey){
         LinkedList<Row> result = new LinkedList<>();
 

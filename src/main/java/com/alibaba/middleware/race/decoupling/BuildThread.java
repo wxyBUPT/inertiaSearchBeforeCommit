@@ -77,7 +77,7 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
 
     @Override
     public void run() {
-        LOG.info("Thread start ");
+        LOG.info("Build Thread start (Buyer and Good)");
         while(true){
             try{
                 T keys = keysQueue.poll(1, TimeUnit.SECONDS);

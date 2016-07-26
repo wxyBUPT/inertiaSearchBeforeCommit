@@ -37,6 +37,8 @@ public class RaceConf {
      */
     /**
      * 比赛环境使用,即一个binarySearch Tree 中节点中最大容量为  ......
+     * 下面参数主要在两处使用,一处是构建 buyer,good avl 的最大容量
+     * 另外一个是在order 的avl 中最大插入数量,非最大容量
      */
     public static final int INMEMORYMAXINDEXSIZE = 2500000;
     /**

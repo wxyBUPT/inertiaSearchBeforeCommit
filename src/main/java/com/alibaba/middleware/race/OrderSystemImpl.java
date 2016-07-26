@@ -64,6 +64,7 @@ public class OrderSystemImpl implements OrderSystem {
         sb.append(",  queryOrderCount is : "  ).append(queryOrderCount);
         sb.append(",  queryOrderByGoodCount is : ").append(queryOrderByGoodCount);
         LOG.info(sb.toString());
+        LOG.info(DiskLocQueues.getInfo());
 
         sb.setLength(0);
                           /* Total number of processors or cores available to the JVM */
@@ -190,10 +191,10 @@ public class OrderSystemImpl implements OrderSystem {
          */
 
         new Thread(new BuildBuyerIdThread(nBuyerRemain,indexDoneSignal)).start();
-        new Thread(new BuildBuyerCreateTimeOrderIdThread(nOrderRemain,indexDoneSignal)).start();
+        new Thread(new BuyerTimeOrderPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
         new Thread(new BuildGoodIdThread(nGoodRemain,indexDoneSignal)).start();
-        new Thread(new BuildGoodOrderIdThread(nOrderRemain,indexDoneSignal)).start();
-        new Thread(new BuildOrderIdThread(nOrderRemain,indexDoneSignal)).start();
+        new Thread(new GoodOrderPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
+        new Thread(new OrderIdPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
         /**
          * For debug
          */

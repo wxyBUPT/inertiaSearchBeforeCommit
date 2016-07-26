@@ -5,6 +5,7 @@ import com.alibaba.middleware.race.cache.ConcurrentLruCache;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForBigData;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForMidData;
 import com.alibaba.middleware.race.cache.LRUCache;
+import com.alibaba.middleware.race.codec.HashKeyHash;
 import com.alibaba.middleware.race.decoupling.PartionBuildThread;
 import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.comparableKeys.*;
@@ -14,6 +15,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/20/16.
@@ -21,6 +23,8 @@ import java.util.Queue;
  * 对 index node 的缓存放在这里
  */
 public class IndexNameSpace {
+
+    private static Logger LOG = Logger.getLogger(IndexNameSpace.class.getName());
 
     /**
      * 单例
@@ -42,7 +46,6 @@ public class IndexNameSpace {
 
     /**
      * 为了每次查询减少一次磁盘访问,将rootNode 取出到内存
-     * buyer 和good 不使用 Hash
      */
     public static IndexNode<ComparableKeysByBuyerId> mBuyerRoot;
     public static IndexNode<ComparableKeysByGoodId> mGoodRoot;
@@ -54,17 +57,14 @@ public class IndexNameSpace {
     public static HashMap<Integer,IndexPartition<ComparableKeysByOrderId>> mOrderPartion;
     public static HashMap<Integer,IndexPartition<ComparableKeysByBuyerCreateTimeOrderId>> mBuyerCreateTimeOrderPartion;
     public static HashMap<Integer,IndexPartition<ComparableKeysByGoodOrderId>> mGoodOrderPartions;
-    public static IndexNode<ComparableKeysByOrderId> mOrderRoot;
-    public static IndexNode<ComparableKeysByBuyerCreateTimeOrderId> mBuyerCreateTimeOrderRoot;
-    public static IndexNode<ComparableKeysByGoodOrderId> mGoodOrderRoot;
 
     /**
      * 对于buyer 和 good ,在lru 中缓存叶子节点与非叶子节点
      * 只不过非叶子节点的优先级要高于叶子节点(由lru for mindata 负责)
+     * orderLRU 由partion 负责
      */
     private final LRUCache<DiskLoc,IndexNode> buyerLRU;
     private final LRUCache<DiskLoc,IndexNode> goodLRU;
-    private final LRUCache<DiskLoc,IndexNode> orderLRU;
 
     private IndexExtentManager indexExtentManager;
     private StoreExtentManager storeExtentManager;
@@ -74,28 +74,34 @@ public class IndexNameSpace {
         storeExtentManager = StoreExtentManager.getInstance();
         buyerLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
         goodLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
-        orderLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
+        /**
+         * 初始化partions
+         */
+        mOrderPartion = new HashMap<>();
+        mBuyerCreateTimeOrderPartion = new HashMap<>();
+        mGoodOrderPartions = new HashMap<>();
+        for(int i = 0;i<RaceConf.N_PARTITION;i++){
+            mOrderPartion.put(i,new IndexPartition<ComparableKeysByOrderId>(i));
+            mBuyerCreateTimeOrderPartion.put(i,new IndexPartition<ComparableKeysByBuyerCreateTimeOrderId>(i));
+            mGoodOrderPartions.put(i,new IndexPartition<ComparableKeysByGoodOrderId>(i));
+        }
     }
 
     public Row queryOrderDataByOrderId(Long orderId){
-        ComparableKeysByOrderId key = new ComparableKeysByOrderId(orderId,null);
-        IndexNode<ComparableKeysByOrderId> indexNode = mOrderRoot;
-        while(!indexNode.isLeafNode()){
-            DiskLoc diskLoc = indexNode.search(key);
-            if(diskLoc == null)return null;
 
-            IndexNode cacheNode = orderLRU.get(diskLoc);
-            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
-            /**
-             * 如果节点是非叶子节点,并且缓存中没有数据
-             */
-            if(cacheNode==null && !indexNode.isLeafNode()) orderLRU.put(diskLoc,indexNode);
-        }
-        DiskLoc diskLoc = indexNode.search(key);
-        if(diskLoc==null)return null;
-        return storeExtentManager.getRowFromDiskLoc(diskLoc);
+        ComparableKeysByOrderId key = new ComparableKeysByOrderId(orderId,null);
+        /**
+         * 确定在哪个partions
+         */
+        Integer hashCode = HashKeyHash.hashKeyHash(key.hashCode());
+        return mOrderPartion.get(hashCode).queryByKey(key);
     }
 
+    /**
+     * 根据goodid 查询,之后也需要重构成使用partion
+     * @param goodId
+     * @return
+     */
     public Row queryGoodDataByGoodId(String goodId){
         ComparableKeysByGoodId key = new ComparableKeysByGoodId(goodId,null);
         IndexNode<ComparableKeysByGoodId> indexNode = mGoodRoot;
@@ -114,6 +120,11 @@ public class IndexNameSpace {
         return storeExtentManager.getRowFromDiskLoc(diskLoc);
     }
 
+    /**
+     * 根据buyerId 查询buyer 数据,之后也需要重构成使用partion
+     * @param buyerId
+     * @return
+     */
     public Row queryBuyerDataByBuyerId(String buyerId){
         ComparableKeysByBuyerId key = new ComparableKeysByBuyerId(buyerId,null);
         IndexNode<ComparableKeysByBuyerId> indexNode = mBuyerRoot;
@@ -130,6 +141,13 @@ public class IndexNameSpace {
         return storeExtentManager.getRowFromDiskLoc(diskLoc);
     }
 
+    /**
+     *
+     * @param startTime
+     * @param endTime
+     * @param buyerid
+     * @return
+     */
     public Deque<Row> queryOrderDataByBuyerCreateTime(long startTime,long endTime,String buyerid){
         ComparableKeysByBuyerCreateTimeOrderId startKey = new ComparableKeysByBuyerCreateTimeOrderId(
                 buyerid,startTime,Long.MIN_VALUE,null
@@ -137,52 +155,33 @@ public class IndexNameSpace {
         ComparableKeysByBuyerCreateTimeOrderId endKey = new ComparableKeysByBuyerCreateTimeOrderId(
                 buyerid,endTime-1,Long.MAX_VALUE,null
         );
+        Integer startHashCode = HashKeyHash.hashKeyHash(startKey.hashCode());
+        Integer endHashCode = HashKeyHash.hashKeyHash(endKey.hashCode());
+        if(!startHashCode.equals(endHashCode)){
+            LOG.info("Some bug happen,this two value should hava same hash code, startKey is: " +
+            startKey + ", endKey is : " + endKey);
+            System.exit(-1);
+        }
         /**
-         * 对磁盘中符合条件的队列进行层序遍历
+         * 获得数据操作交给对应的partion
          */
-        return levelTraversal(mBuyerCreateTimeOrderRoot,startKey,endKey);
+        return mBuyerCreateTimeOrderPartion.get(startHashCode).rangeQuery(startKey,endKey);
     }
 
     public Queue<Row> queryOrderDataByGoodid(String goodid){
         ComparableKeysByGoodOrderId minKey = new ComparableKeysByGoodOrderId(goodid,Long.MIN_VALUE);
         ComparableKeysByGoodOrderId maxKey = new ComparableKeysByGoodOrderId(goodid,Long.MAX_VALUE);
-        /**
-         * 对磁盘进行层序遍历
-         */
-        return levelTraversal(mGoodOrderRoot,minKey,maxKey);
-    }
-
-    private <V extends Comparable&Serializable&Indexable> LinkedList<Row> levelTraversal(IndexNode root, V minKey, V maxKey){
-        LinkedList<Row> result = new LinkedList<>();
-
-        Queue<IndexNode> nodes = new LinkedList<>();
-        nodes.add(root);
-        while(!nodes.isEmpty()){
-            IndexNode node = nodes.remove();
-            if(node.isLeafNode()){
-                Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
-                DiskLoc diskLoc = diskLocs.poll();
-                while(diskLoc!=null){
-                    Row row = storeExtentManager.getRowFromDiskLoc(diskLoc);
-                    result.add(row);
-                    diskLoc = diskLocs.poll();
-                }
-            }else {
-                Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
-                if(diskLocs!=null) {
-                    while (!diskLocs.isEmpty()) {
-                        DiskLoc diskLoc = diskLocs.remove();
-                        IndexNode cacheNode = orderLRU.get(diskLoc);
-                        IndexNode indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
-                        if(cacheNode==null&& !indexNode.isLeafNode()){
-                            orderLRU.put(diskLoc,indexNode);
-                        }
-                        nodes.add(indexNode);
-                    }
-                }
-            }
+        Integer minHash = HashKeyHash.hashKeyHash(minKey.hashCode());
+        Integer maxHash = HashKeyHash.hashKeyHash(maxKey.hashCode());
+        if(!minHash.equals(maxHash)){
+            LOG.info("Some bug happen,this two value should have same hash code, minKey is : "
+            + minHash + ", maxKey is : " + maxHash);
+            System.exit(-1);
         }
-        return result;
+        /**
+         * 获得数据的操作同样交给对应的partion
+         */
+        return mGoodOrderPartions.get(minHash).rangeQuery(minKey,maxKey);
     }
 
     /**
@@ -193,7 +192,7 @@ public class IndexNameSpace {
         StringBuilder sb = new StringBuilder();
         sb.append("buyerLRU  ###  size : " + buyerLRU.size() + ", limit: "+buyerLRU.getLimit());
         sb.append("goodLRU  ### size: " + goodLRU.size() + ", limit: " + goodLRU.getLimit());
-        sb.append("orderLRU  ### size: " + orderLRU.size() + ", limit: " + orderLRU.getLimit());
+        sb.append(", partion info : " + " null ");
         return sb.toString();
     }
 
