@@ -24,7 +24,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
     private IndexExtentManager indexExtentManager;
 
     public LinkedList<DiskLoc> moveIteratorDataToDisk(Iterator<T> from){
-        LOG.info("Start move, move data to disk");
         moveCount.incrementAndGet();
         LinkedList<DiskLoc> newDiskLocks = new LinkedList<>();
 
@@ -56,6 +55,94 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
         newDiskLocks.add(diskLoc);
         return newDiskLocks;
     }
+
+    /**
+     * 对两个iteraot 归并排序,并存储到磁盘中,返回磁盘中的位置
+     * @param firstIterator
+     * @param secondIterator
+     * @return
+     */
+    public LinkedList<DiskLoc> mergeIterator(Iterator<T> firstIterator,Iterator<T> secondIterator){
+        LOG.info("Merage start");
+        LinkedList<DiskLoc> newDiskLocs = new LinkedList<>();
+        IndexLeafNode<T> currentIndexLeaf = new IndexLeafNode<>();
+
+        T firstNext;
+        if(firstIterator.hasNext()){
+            firstNext = firstIterator.next();
+        }else {
+            firstNext = null;
+        }
+
+        T secondNext;
+        if(secondIterator.hasNext()){
+            secondNext = secondIterator.next();
+        }
+        else {
+            secondNext = null;
+        }
+
+        while (firstNext!=null&&secondNext!=null){
+            if(currentIndexLeaf.isFull()){
+                DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+                newDiskLocs.add(diskLoc);
+                currentIndexLeaf = new IndexLeafNode<>();
+            }
+            int ret = firstNext.compareTo(secondNext);
+            if(ret<0){
+                currentIndexLeaf.appendData(firstNext);
+                if(firstIterator.hasNext()){
+                    firstNext = firstIterator.next();
+                }else {
+                    firstNext = null;
+                }
+            }else if(ret>0){
+                currentIndexLeaf.appendData(secondNext);
+                if(secondIterator.hasNext()){
+                    secondNext = secondIterator.next();
+                }else {
+                    secondNext = null;
+                }
+            }else {
+                LOG.info("ERROR, Some bug happen, key is same");
+            }
+        }
+
+        while(firstNext!=null){
+            if(currentIndexLeaf.isFull()){
+                DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+                newDiskLocs.add(diskLoc);
+                currentIndexLeaf = new IndexLeafNode<>();
+            }
+            currentIndexLeaf.appendData(firstNext);
+            if(firstIterator.hasNext()){
+                firstNext = firstIterator.next();
+            }else {
+                firstNext = null;
+            }
+        }
+
+        while(secondNext!=null){
+            if(currentIndexLeaf.isFull()){
+                DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+                newDiskLocs.add(diskLoc);
+                currentIndexLeaf = new IndexLeafNode<>();
+            }
+            currentIndexLeaf.appendData(secondNext);
+            if(secondIterator.hasNext()){
+                secondNext = firstIterator.next();
+            }else {
+                secondNext = null;
+            }
+        }
+
+        if(currentIndexLeaf.size()!=0) {
+            DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+            newDiskLocs.add(diskLoc);
+        }
+        return newDiskLocs;
+    }
+
     public LinkedList<DiskLoc> flushAvlToDisk(LimitedAvlTree<T> from , LinkedList<DiskLoc> diskLocs){
         LOG.info("Strat flush, notice if this type of log is too much ,You must can't pass, current flush Count is " +
         flushCount.incrementAndGet());

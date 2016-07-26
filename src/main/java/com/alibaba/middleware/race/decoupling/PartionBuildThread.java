@@ -100,7 +100,7 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
                 while(true){
                     StringBuilder sb = new StringBuilder();
                     for(Map.Entry<Integer,AvlTree<T>> entry:inMemoryTrees.entrySet()){
-                        sb.append("Partion" + entry.getKey() + ": "+entry.getValue().getInfo());
+                        sb.append("Partion" + entry.getKey() + ": "+entry.getValue().getInfo()+" ");
                     }
                     LOG.info(sb.toString());
                     try{

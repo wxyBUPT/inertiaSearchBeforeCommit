@@ -40,7 +40,7 @@ public class RaceConf {
      * 下面参数主要在两处使用,一处是构建 buyer,good avl 的最大容量
      * 另外一个是在order 的avl 中最大插入数量,非最大容量
      */
-    public static final int INMEMORYMAXINDEXSIZE = 2500000;
+    public static final int INMEMORYMAXINDEXSIZE = 7500000;
     /**
      * 测试环境使用
      */
@@ -96,7 +96,7 @@ public class RaceConf {
     /**
      * 根据 hash 分片个个数
      */
-    public static final Integer N_PARTITION = 64;
+    public static final Integer N_PARTITION = 256;
 
     public static void main(String[] args){
         int TESTCOUNT = 1200;

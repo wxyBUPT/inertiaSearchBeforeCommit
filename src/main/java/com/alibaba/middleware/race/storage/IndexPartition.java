@@ -3,13 +3,11 @@ package com.alibaba.middleware.race.storage;
 import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForBigData;
 import com.alibaba.middleware.race.cache.LRUCache;
+import com.alibaba.middleware.race.decoupling.FlushUtil;
 import com.alibaba.middleware.race.models.Row;
 
 import java.io.Serializable;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -27,7 +25,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
     /**
      * Vector 中每一个元素都是在磁盘中排好序的key 值,此部分
      */
-    private Vector<LinkedList<DiskLoc>> sortedKeysInDisk;
+    private Queue<LinkedList<DiskLoc>> sortedKeysInDisk;
 
     /**
      * 用来缓存b+ 树的跟节点
@@ -45,6 +43,8 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
     private IndexExtentManager indexExtentManager;
     private StoreExtentManager storeExtentManager;
 
+    private FlushUtil<T> flushUtil;
+
     /**
      * 构造函数
      * @param myHashCode
@@ -53,11 +53,12 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         indexExtentManager = IndexExtentManager.getInstance();
         storeExtentManager = StoreExtentManager.getInstance();
         this.myHashCode = myHashCode;
-        this.sortedKeysInDisk = new Vector<>();
+        this.sortedKeysInDisk = new LinkedList<>();
         /**
          * 假定当前只对 order key 的值分片
          */
         myLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
+        flushUtil = new FlushUtil<>();
     }
 
     /**
@@ -78,12 +79,26 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         new Thread(new Runnable() {
             @Override
             public void run() {
+                /**
+                 * sortedKeysInDisk 中所有的值进行归并排序
+                 */
+                while(sortedKeysInDisk.size()>1){
+                    LinkedList<DiskLoc> diskLocs = sortedKeysInDisk.poll();
+                    LinkedList<DiskLoc> diskLocs1 = sortedKeysInDisk.poll();
+                    IndexLeafNodeIterator<T> iterator = new IndexLeafNodeIterator<>(diskLocs,indexExtentManager);
+                    IndexLeafNodeIterator<T> iterator1 = new IndexLeafNodeIterator<>(diskLocs1,indexExtentManager);
+                    sortedKeysInDisk.add(flushUtil.mergeIterator(iterator,iterator1));
+
+                }
+                System.out.println("myHashCode is : " + myHashCode + "sortedKeysInDis size is " + sortedKeysInDisk.size());
                 System.out.println("我将是整个工程最消耗时间,最消耗空间,最消耗磁盘io 的一部分,请优化我!!!!");
                 System.out.println("我还没有实现,但是我可以用于测试!!!!!!!!!");
                 countDownLatch.countDown();
             }
         }).start();
     }
+
+
 
     /**
      * 查询一个元素

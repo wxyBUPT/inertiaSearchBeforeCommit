@@ -40,9 +40,6 @@ public class IndexNameSpace {
 
     public static DiskLoc buyerRoot;
     public static DiskLoc goodRoot;
-    public static DiskLoc orderRoot;
-    public static DiskLoc buyerCreateTimeOrderRoot;
-    public static DiskLoc goodOrderRoot;
 
     /**
      * 为了每次查询减少一次磁盘访问,将rootNode 取出到内存
