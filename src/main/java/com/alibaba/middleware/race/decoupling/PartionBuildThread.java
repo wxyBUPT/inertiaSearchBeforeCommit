@@ -2,7 +2,6 @@ package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.AvlTree;
-import com.alibaba.middleware.race.codec.HashKeyHash;
 import com.alibaba.middleware.race.storage.IndexNameSpace;
 import com.alibaba.middleware.race.storage.IndexPartition;
 import com.alibaba.middleware.race.storage.Indexable;
@@ -29,11 +28,6 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
      * 用来判断原始数据复制线程是否完成数据复制
      */
     protected final AtomicInteger nRemain;
-
-    /**
-     * 内存中的排序树,对应的标号代表partion 的标号
-     */
-    HashMap<Integer,AvlTree<T>> inMemoryTrees;
 
     protected int flushCount = 0;
     /**
@@ -75,42 +69,9 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
         countInsert = 0;
         totalInsertCount = 0L;
         this.nRemain = nRemain;
-        inMemoryTrees = new HashMap<>();
         flushUtil = new FlushUtil<>();
-        /**
-         * 为每一个partion 创建新的缓存
-         */
-        for(int i = 0;i<RaceConf.N_PARTITION;i++){
-            inMemoryTrees.put(i,new AvlTree<T>());
-        }
         this.sendFinishSingle = sendFinishSingle;
         indexNameSpace = IndexNameSpace.getInstance();
-        /**
-         * Use to report condition
-         * for debug
-         */
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                }catch (Exception e){
-
-                }
-                while(true){
-                    StringBuilder sb = new StringBuilder();
-                    for(Map.Entry<Integer,AvlTree<T>> entry:inMemoryTrees.entrySet()){
-                        sb.append("Partion" + entry.getKey() + ": "+entry.getValue().getInfo()+" ");
-                    }
-                    LOG.info(sb.toString());
-                    try{
-                        Thread.sleep(20000);
-                    }catch (Exception e){
-
-                    }
-                }
-            }
-        }).start();
     }
 
     @Override
@@ -128,7 +89,7 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
                         break;
                     }
                     /**
-                     * 避免孔插数据
+                     * 避免空插数据
                      */
                     continue;
                 }

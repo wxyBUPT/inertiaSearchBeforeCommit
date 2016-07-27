@@ -32,5 +32,4 @@ public class DiskLocQueues {
         sb.append(", goodOrder: ").append(comparableKeysByGoodOrderId.size());
         return sb.toString();
     }
-
 }

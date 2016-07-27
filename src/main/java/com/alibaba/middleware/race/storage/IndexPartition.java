@@ -11,6 +11,9 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/26/16.
@@ -19,6 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class IndexPartition<T extends Comparable<? super T> & Serializable & Indexable> {
 
+    static final Logger LOG = Logger.getLogger(IndexPartition.class.getName());
     /**
      * 一类Key 值被分为64部分
      */
@@ -55,7 +59,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
     /**
      * 档案用于缓存添加key 的arraylist
      */
-    private List<T> currentCache;
+    public List<T> currentCache;
     /**
      * 当前缓存中有多少个元素
      */
@@ -65,6 +69,16 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
      * 执行quickSort
      */
     private QuickSort<T> quickSort;
+
+    /**
+     * 排序锁,只有一个线程能够执行排序任务
+     */
+    private Lock sortLock ;
+
+    /**
+     * 为了实现线程间数据共享,与currentCache 相交换
+     */
+    List<T> tmp;
 
     /**
      * 构造函数
@@ -91,6 +105,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         }
         elementCount = 0;
         quickSort = new QuickSort<>();
+        sortLock = new ReentrantLock();
     }
 
     /**
@@ -101,20 +116,34 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         /**
          * 如果当前缓存元素个数满
          */
+        //if(elementCount>=100){
         if(elementCount>=RaceConf.PARTITION_CACHE_COUNT){
             /**
              * 对当前的元素执行快排
              */
-            elementCount=0;
+            /**
+             * 下面代码有线程安全问题,需要多加小心
+             */
+            tmp = currentCache;
+            try {
+                currentCache = keysCacheQueue.take();
+                elementCount = 0;
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+            /**
+             * 下面的任务是将tmp 排序,并将其插入到磁盘中去,最好由另外的线程执行
+             */
+
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    List<T> tmp = currentCache;
                     List<T> sortedList = quickSort.quicksort(tmp);
                     sortedKeysInDisk.add(flushUtil.moveListDataToDisk(sortedList));
                     tmp.clear();
                     boolean flag = keysCacheQueue.offer(tmp);
-                    if(!flag){
+                    if (!flag) {
                         System.out.println("没能放入新的元素到缓存队列中");
                         System.exit(-1);
                     }
@@ -123,12 +152,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
             /**
              * 上面代码是启动线程,下面代码如果当前队列中两个缓存队列都不可用,会被阻塞
              */
-            try {
-                currentCache = keysCacheQueue.take();
-            }catch (Exception e){
-                e.printStackTrace();
-                System.exit(-1);
-            }
+
         }
         elementCount++;
         currentCache.add(t);
@@ -181,9 +205,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
                     System.exit(-1);
                 }
                 DiskLoc diskLoc = flushUtil.buildBPlusTree(sortedKeysInDisk.poll());
-                rootIndex = indexExtentManager.getIndexLeafNodeFromDiskLocForInsert(diskLoc);
-                System.out.println("myHashCode is : " + myHashCode + "sortedKeysInDis size is " + sortedKeysInDisk.size());
-                System.out.println("我将是整个工程最消耗时间,最消耗空间,最消耗磁盘io 的一部分,请优化我!!!!");
+                rootIndex = indexExtentManager.getIndexNodeFromDiskLocForInsert(diskLoc);
                 countDownLatch.countDown();
             }
         }).start();
@@ -261,5 +283,30 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         }
         return result;
     }
+}
 
+
+/**
+ * 数据排序线程
+ */
+class SortThread<T extends Comparable<? super T>&Serializable&Indexable> implements Runnable{
+
+    /**
+     * 排序并将数据放回磁盘之后,需要为队列提供新的List
+     */
+    LinkedBlockingQueue<List<T>> keysCacheQueue;
+    List<T> cacheList;
+    QuickSort<T> quickSort;
+    FlushUtil<T> flushUtil;
+    public SortThread(LinkedBlockingQueue<List<T>> keysCacheQueue,List<T> cacheList,QuickSort<T> quickSort,FlushUtil<T> flushUtil){
+        this.keysCacheQueue = keysCacheQueue;
+        this.cacheList = cacheList;
+        this.quickSort = quickSort;
+        this.flushUtil = flushUtil;
+    }
+    @Override
+    public void run() {
+        List<T> tmp = quickSort.quicksort(cacheList);
+
+    }
 }

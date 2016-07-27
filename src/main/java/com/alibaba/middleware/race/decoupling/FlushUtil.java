@@ -123,6 +123,8 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
                 }
             }else {
                 LOG.info("ERROR, Some bug happen, key is same");
+                System.out.println(""+firstNext+secondNext);
+                System.exit(-1);
             }
         }
 

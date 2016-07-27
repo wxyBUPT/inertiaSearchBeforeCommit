@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.decoupling;
 
-import com.alibaba.middleware.race.cache.AvlTree;
 import com.alibaba.middleware.race.codec.HashKeyHash;
 import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByGoodOrderId;
 import com.alibaba.middleware.race.storage.IndexPartition;
@@ -24,7 +23,7 @@ public class GoodOrderPartionBuildThread extends PartionBuildThread<ComparableKe
     @Override
     protected void putIndexToPartion(ComparableKeysByGoodOrderId comparableKeysByGoodOrderId) {
         int hasCode = HashKeyHash.hashKeyHash(comparableKeysByGoodOrderId.hashCode());
-        indexNameSpace.mGoodOrderPartions.get(hasCode).addKey(comparableKeysByGoodOrderId);
+        myPartions.get(hasCode).addKey(comparableKeysByGoodOrderId);
     }
 
     @Override

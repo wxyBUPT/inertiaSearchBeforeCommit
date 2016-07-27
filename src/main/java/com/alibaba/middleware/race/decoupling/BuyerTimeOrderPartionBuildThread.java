@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.decoupling;
 
-import com.alibaba.middleware.race.cache.AvlTree;
 import com.alibaba.middleware.race.codec.HashKeyHash;
 import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByBuyerCreateTimeOrderId;
 import com.alibaba.middleware.race.storage.IndexPartition;
@@ -24,7 +23,7 @@ public class BuyerTimeOrderPartionBuildThread extends  PartionBuildThread<Compar
     @Override
     protected void putIndexToPartion(ComparableKeysByBuyerCreateTimeOrderId comparableKeysByBuyerCreateTimeOrderId) {
         int hashCode = HashKeyHash.hashKeyHash(comparableKeysByBuyerCreateTimeOrderId.hashCode());
-        indexNameSpace.mBuyerCreateTimeOrderPartion.get(hashCode).addKey(comparableKeysByBuyerCreateTimeOrderId);
+        myPartions.get(hashCode).addKey(comparableKeysByBuyerCreateTimeOrderId);
     }
 
     @Override
