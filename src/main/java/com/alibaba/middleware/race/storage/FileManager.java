@@ -102,6 +102,7 @@ public class FileManager {
     }
 
     public synchronized void finishConstruct(){
+        LOG.info("Construct almost finish,make all file readOnly");
         ExecutorService es = Executors.newCachedThreadPool();
         for(final Map.Entry<Integer,StoreFile> entry:storeMap.entrySet()){
             es.execute(new Thread(new Runnable() {
@@ -127,5 +128,6 @@ public class FileManager {
             e.printStackTrace();
             System.exit(-1);
         }
+        LOG.info("Finish make all file readOnly");
     }
 }

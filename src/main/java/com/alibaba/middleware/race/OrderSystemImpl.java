@@ -129,10 +129,6 @@ public class OrderSystemImpl implements OrderSystem {
         final AtomicInteger nGoodRemain = new AtomicInteger(0);
         final AtomicInteger nBuyerRemain = new AtomicInteger(0);
 
-        final CountDownLatch indexDoneSignal = new CountDownLatch(5);
-
-
-
         /**
          * nThread 个将原始数据写入磁盘的线程
          */
@@ -187,9 +183,10 @@ public class OrderSystemImpl implements OrderSystem {
             LOG.info("new goodFiles writer have started");
         }
         /**
-         * 七个创建索引线程
+         * 五个创建索引线程
          */
 
+        final CountDownLatch indexDoneSignal = new CountDownLatch(5);
         new Thread(new BuyerPartionBuildThread(nBuyerRemain,indexDoneSignal)).start();
         new Thread(new BuyerTimeOrderPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
         new Thread(new GoodPartionBuildThread(nGoodRemain,indexDoneSignal)).start();
@@ -212,15 +209,17 @@ public class OrderSystemImpl implements OrderSystem {
         //    }
         //}).start();
 
-
         doneSignal.await();
-        LOG.info("finish copy file");
+        LOG.info("Finish copy file. It means all origin file have moved to disk");
         indexDoneSignal.await();
-        LOG.info("finish create all");
+        LOG.info("FINISHINDEX , finish create all index. ");
         fileManager.finishConstruct();
-
+        LOG.info("ConstructAllFinish!!!!!!  Congratulate!!!");
     }
 
+    /**
+     * 下面内容都是为了查询
+     */
     private static class ResultImpl implements Result{
         private long orderid;
         private Row kvMap;

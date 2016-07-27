@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 /**
@@ -34,6 +36,8 @@ public abstract class ExtentManager {
 
     private Random random ;
 
+    private Vector<Lock> diskLoc;
+
     protected ExtentManager(){
         fileManager = FileManager.getInstance();
         /**
@@ -42,7 +46,9 @@ public abstract class ExtentManager {
         currentFiles = new Vector<>(3);
         currentExtents = new Vector<>(3);
         extentMap = new ConcurrentHashMap<>();
+        diskLoc = new Vector<>(3);
         for(int i = 0;i<3;i++){
+            diskLoc.add(new ReentrantLock());
             StoreFile storeFile = newFile();
             currentFiles.add(storeFile);
             if(storeFile.hasNewExtent()){
@@ -75,16 +81,17 @@ public abstract class ExtentManager {
         /**
          * 向第 nDisk 个extent 中插入bytes 数据
          */
-        DiskLoc diskLoc = currentExtents.get(nDisk).putBytes(bytes);
-        /**
-         * 如果成功插入,则直接返回
-         */
-        if(diskLoc!=null)return diskLoc;
-        /**
-         * 如果没有插入成功,则当前的extent 已经满了,获得新的extent
-         * 如果当前文件已经没有空闲的extent ,则更新当前文件
-         */
-        synchronized (this) {
+        diskLoc.get(nDisk).lock();
+        try {
+            DiskLoc diskLoc = currentExtents.get(nDisk).putBytes(bytes);
+            /**
+             * 如果成功插入,则直接返回
+             */
+            if (diskLoc != null) return diskLoc;
+            /**
+             * 如果没有插入成功,则当前的extent 已经满了,获得新的extent
+             * 如果当前文件已经没有空闲的extent ,则更新当前文件
+             */
             if (!currentFiles.get(nDisk).hasNewExtent()) {
                 currentFiles.set(nDisk, newFile());
             }
@@ -95,13 +102,15 @@ public abstract class ExtentManager {
             }
             currentExtents.set(nDisk, extent);
             int extentNo = extent.getExtentNo();
-            extentMap.put(extentNo,extent);
+            extentMap.put(extentNo, extent);
             diskLoc = currentExtents.get(nDisk).putBytes(bytes);
             if (diskLoc == null) {
                 LOG.info("Some error happen, there is bug exist,the bug is diskLoc is null");
                 System.exit(-1);
             }
             return diskLoc;
+        }finally {
+            diskLoc.get(nDisk).unlock();
         }
     }
 

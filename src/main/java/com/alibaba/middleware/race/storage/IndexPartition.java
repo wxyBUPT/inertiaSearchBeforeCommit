@@ -118,7 +118,6 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
          */
         //if(elementCount>=802){
         if(elementCount>=RaceConf.PARTITION_CACHE_COUNT){
-            LOG.info("Put keys to disk, currentCache size is  " + currentCache.size());
             /**
              * 对当前的元素执行快排
              */
@@ -136,6 +135,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
 
             /**
              * 下面的任务是将tmp 排序,并将其插入到磁盘中去,最好由另外的线程执行
+             * 下面代码出现了线程不安全问题,多线程会同时创建文件
              */
             new Thread(new Runnable() {
                 @Override

@@ -1,14 +1,11 @@
 package com.alibaba.middleware.race.decoupling;
 
-import com.alibaba.middleware.race.RaceConf;
-import com.alibaba.middleware.race.cache.AvlTree;
 import com.alibaba.middleware.race.storage.IndexNameSpace;
 import com.alibaba.middleware.race.storage.IndexPartition;
 import com.alibaba.middleware.race.storage.Indexable;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
