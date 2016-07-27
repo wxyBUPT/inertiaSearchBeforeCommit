@@ -507,39 +507,48 @@ public class OrderSystemImpl implements OrderSystem {
 
         // 用例
         if(RaceConf.debug) {
-            System.out.println("这些事测试用例");
-            long orderid = 2982388;
-            System.out.println("\n查询订单号为" + orderid + "的订单");
-            System.out.println(os.queryOrder(orderid, null));
+            if(1+1!=2) {
+                System.out.println("这些事测试用例");
+                long orderid = 2982388;
+                System.out.println("\n查询订单号为" + orderid + "的订单");
+                System.out.println(os.queryOrder(orderid, null));
 
-            System.out.println("\n查询订单号为" + orderid + "的订单，查询的keys为空，返回订单，但没有kv数据");
-            System.out.println(os.queryOrder(orderid, new ArrayList<String>()));
+                System.out.println("\n查询订单号为" + orderid + "的订单，查询的keys为空，返回订单，但没有kv数据");
+                System.out.println(os.queryOrder(orderid, new ArrayList<String>()));
 
-            System.out.println("\n查询订单号为" + orderid
-                    + "的订单的contactphone, buyerid, foo, done, price字段");
+                System.out.println("\n查询订单号为" + orderid
+                        + "的订单的contactphone, buyerid, foo, done, price字段");
+                List<String> queryingKeys = new ArrayList<String>();
+                queryingKeys.add("contactphone");
+                queryingKeys.add("buyerid");
+                queryingKeys.add("foo");
+                queryingKeys.add("done");
+                queryingKeys.add("price");
+                Result result = os.queryOrder(orderid, queryingKeys);
+                System.out.println(result);
+                System.out.println("\n查询订单号不存在的订单");
+                result = os.queryOrder(1111, queryingKeys);
+                if (result == null) {
+                    System.out.println(1111 + " order not exist");
+                }
+
+                Iterator<Result> it;
+                String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
+                long startTime = 1471025622;
+                long endTime = 1471219509;
+                System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
+                it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
+                while (it.hasNext()) {
+                    System.out.println(it.next());
+                }
+            }
             List<String> queryingKeys = new ArrayList<String>();
             queryingKeys.add("contactphone");
             queryingKeys.add("buyerid");
             queryingKeys.add("foo");
             queryingKeys.add("done");
             queryingKeys.add("price");
-            Result result = os.queryOrder(orderid, queryingKeys);
-            System.out.println(result);
-            System.out.println("\n查询订单号不存在的订单");
-            result = os.queryOrder(1111, queryingKeys);
-            if (result == null) {
-                System.out.println(1111 + " order not exist");
-            }
-
             Iterator<Result> it;
-            String buyerid = "tb_a99a7956-974d-459f-bb09-b7df63ed3b80";
-            long startTime = 1471025622;
-            long endTime = 1471219509;
-            System.out.println("\n查询买家ID为" + buyerid + "的一定时间范围内的订单");
-            it = os.queryOrdersByBuyer(startTime, endTime, buyerid);
-            while (it.hasNext()) {
-                System.out.println(it.next());
-            }
 
 
             String goodid = "good_842195f8-ab1a-4b09-a65f-d07bdfd8f8ff";
@@ -555,18 +564,20 @@ public class OrderSystemImpl implements OrderSystem {
             System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
             System.out.println(os.sumOrdersByGood(goodid, attr));
 
-            attr = "done";
-            System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-            KeyValue sum = os.sumOrdersByGood(goodid, attr);
-            if (sum == null) {
-                System.out.println("由于该字段是布尔类型，返回值是null");
-            }
+            if(1+1!=2) {
+                attr = "done";
+                System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+                KeyValue sum = os.sumOrdersByGood(goodid, attr);
+                if (sum == null) {
+                    System.out.println("由于该字段是布尔类型，返回值是null");
+                }
 
-            attr = "foo";
-            System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
-            sum = os.sumOrdersByGood(goodid, attr);
-            if (sum == null) {
-                System.out.println("由于该字段不存在，返回值是null");
+                attr = "foo";
+                System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
+                sum = os.sumOrdersByGood(goodid, attr);
+                if (sum == null) {
+                    System.out.println("由于该字段不存在，返回值是null");
+                }
             }
         }
     }

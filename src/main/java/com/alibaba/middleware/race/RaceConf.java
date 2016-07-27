@@ -96,11 +96,11 @@ public class RaceConf {
     /**
      * 根据 hash 分片个个数
      */
-    public static final Integer N_PARTITION = 128;
+    public static final Integer N_PARTITION = 512;
     /**
      * 一个partion中有两个保存keys的arrayList用作cache,
      */
-    public static final Integer PARTITION_CACHE_COUNT = 4800;
+    public static final Integer PARTITION_CACHE_COUNT = 6400;
 
     public static void main(String[] args){
         int TESTCOUNT = 1200;

@@ -116,7 +116,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         /**
          * 如果当前缓存元素个数满
          */
-        //if(elementCount>=100){
+        //if(elementCount>=1600){
         if(elementCount>=RaceConf.PARTITION_CACHE_COUNT){
             /**
              * 对当前的元素执行快排
@@ -132,10 +132,10 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
                 e.printStackTrace();
                 System.exit(-1);
             }
+
             /**
              * 下面的任务是将tmp 排序,并将其插入到磁盘中去,最好由另外的线程执行
              */
-
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -156,14 +156,6 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         }
         elementCount++;
         currentCache.add(t);
-    }
-
-    /**
-     * 磁盘中插入key 数据由外层负责,partion 只负责缓存key 数据在磁盘中插入的有序位置,并提供保存接口
-     * @param sortedKeysInDisk
-     */
-    public void addSortedKeys(LinkedList<DiskLoc> sortedKeysInDisk){
-        this.sortedKeysInDisk.add(sortedKeysInDisk);
     }
 
     /**
@@ -282,31 +274,5 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
             }
         }
         return result;
-    }
-}
-
-
-/**
- * 数据排序线程
- */
-class SortThread<T extends Comparable<? super T>&Serializable&Indexable> implements Runnable{
-
-    /**
-     * 排序并将数据放回磁盘之后,需要为队列提供新的List
-     */
-    LinkedBlockingQueue<List<T>> keysCacheQueue;
-    List<T> cacheList;
-    QuickSort<T> quickSort;
-    FlushUtil<T> flushUtil;
-    public SortThread(LinkedBlockingQueue<List<T>> keysCacheQueue,List<T> cacheList,QuickSort<T> quickSort,FlushUtil<T> flushUtil){
-        this.keysCacheQueue = keysCacheQueue;
-        this.cacheList = cacheList;
-        this.quickSort = quickSort;
-        this.flushUtil = flushUtil;
-    }
-    @Override
-    public void run() {
-        List<T> tmp = quickSort.quicksort(cacheList);
-
     }
 }

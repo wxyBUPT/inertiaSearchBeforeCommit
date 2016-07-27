@@ -257,7 +257,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
      * @return
      */
     public DiskLoc buildBPlusTree(LinkedList<DiskLoc> diskLocs){
-        LOG.info("Start build bPlusTree");
         LinkedList<DiskLoc> thisLevelNodePostion = diskLocs;
         LinkedList<DiskLoc> highLevelNodePosition;
         IndexTreeNode<T> currentParent = new IndexTreeNode<>();
