@@ -138,8 +138,6 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
                 System.exit(-1);
             }
         }
-        LOG.info("The lastest flush !");
-        flushAvlToDisk();
         LOG.info("Create bPlus tree");
         createBPlusTree();
         LOG.info("Finsh create bPlust tree");
@@ -148,24 +146,12 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
     }
 
     private void insertKeys(T key){
-        if(this.countInsert>=maxSizeAllowed){
-            LOG.info("inmemory Tree is full , flush inmemory tree to partion, flush count is " + ++flushCount);
-            flushAvlToDisk();
-            countInsert = 0;
-        }
-        /**
-         * 增加插入数量
-         */
         countInsert++;
         totalInsertCount++;
-        int keyHash = HashKeyHash.hashKeyHash(key.hashCode());
-        inMemoryTrees.get(keyHash).insert(key);
+        putIndexToPartion(key);
     }
 
-    /**
-     * 在子类中被重写的方法,将内存中的数据写到硬盘中,
-     */
-    protected abstract void flushAvlToDisk();
+    protected abstract void putIndexToPartion(T t);
 
     /**
      * 在每一个Partion 中创建b+ 树

@@ -8,6 +8,7 @@ import com.alibaba.middleware.race.storage.*;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -56,6 +57,24 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
         return newDiskLocks;
     }
 
+    public LinkedList<DiskLoc> moveListDataToDisk(List<T> from){
+
+        LinkedList<DiskLoc> newDiskLocks = new LinkedList<>();
+
+        IndexLeafNode<T> currentIndexLeaf = new IndexLeafNode<>();
+        for(T t:from){
+            if(currentIndexLeaf.isFull()){
+                DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+                newDiskLocks.add(diskLoc);
+                currentIndexLeaf = new IndexLeafNode<>();
+            }
+            currentIndexLeaf.appendData(t);
+        }
+        DiskLoc diskLoc = indexExtentManager.putIndexLeafNode(currentIndexLeaf);
+        newDiskLocks.add(diskLoc);
+        return newDiskLocks;
+    }
+
     /**
      * 对两个iteraot 归并排序,并存储到磁盘中,返回磁盘中的位置
      * @param firstIterator
@@ -63,7 +82,6 @@ public class FlushUtil<T extends Comparable<? super T> & Serializable & Indexabl
      * @return
      */
     public LinkedList<DiskLoc> mergeIterator(Iterator<T> firstIterator,Iterator<T> secondIterator){
-        LOG.info("Merage start");
         LinkedList<DiskLoc> newDiskLocs = new LinkedList<>();
         IndexLeafNode<T> currentIndexLeaf = new IndexLeafNode<>();
 

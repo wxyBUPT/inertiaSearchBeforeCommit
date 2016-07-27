@@ -4,11 +4,13 @@ import com.alibaba.middleware.race.RaceConf;
 import com.alibaba.middleware.race.cache.ConcurrentLruCacheForBigData;
 import com.alibaba.middleware.race.cache.LRUCache;
 import com.alibaba.middleware.race.decoupling.FlushUtil;
+import com.alibaba.middleware.race.decoupling.QuickSort;
 import com.alibaba.middleware.race.models.Row;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by xiyuanbupt on 7/26/16.
@@ -46,6 +48,25 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
     private FlushUtil<T> flushUtil;
 
     /**
+     * 两个用于添加数据和排序的ArrayList
+     * 每一个partion 会启动新的线程排序,并将排序后的索引添加到磁盘,并不会阻塞数据插入线程
+     */
+    private LinkedBlockingQueue<List<T>> keysCacheQueue;
+    /**
+     * 档案用于缓存添加key 的arraylist
+     */
+    private List<T> currentCache;
+    /**
+     * 当前缓存中有多少个元素
+     */
+    private int elementCount;
+
+    /**
+     * 执行quickSort
+     */
+    private QuickSort<T> quickSort;
+
+    /**
      * 构造函数
      * @param myHashCode
      */
@@ -59,6 +80,58 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
          */
         myLRU = new ConcurrentLruCacheForBigData<>(RaceConf.N_ORDER_INDEX_CACHE_COUNT);
         flushUtil = new FlushUtil<>();
+        keysCacheQueue = new LinkedBlockingQueue<>(2);
+        try {
+            keysCacheQueue.put(new ArrayList<T>(RaceConf.PARTITION_CACHE_COUNT));
+            keysCacheQueue.put(new ArrayList<T>(RaceConf.PARTITION_CACHE_COUNT));
+            currentCache = keysCacheQueue.take();
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        elementCount = 0;
+        quickSort = new QuickSort<>();
+    }
+
+    /**
+     * 将key 值添加到partion 中去
+     * @param t
+     */
+    public void addKey(T t){
+        /**
+         * 如果当前缓存元素个数满
+         */
+        if(elementCount>=RaceConf.PARTITION_CACHE_COUNT){
+            /**
+             * 对当前的元素执行快排
+             */
+            elementCount=0;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    List<T> tmp = currentCache;
+                    List<T> sortedList = quickSort.quicksort(tmp);
+                    sortedKeysInDisk.add(flushUtil.moveListDataToDisk(sortedList));
+                    tmp.clear();
+                    boolean flag = keysCacheQueue.offer(tmp);
+                    if(!flag){
+                        System.out.println("没能放入新的元素到缓存队列中");
+                        System.exit(-1);
+                    }
+                }
+            }).start();
+            /**
+             * 上面代码是启动线程,下面代码如果当前队列中两个缓存队列都不可用,会被阻塞
+             */
+            try {
+                currentCache = keysCacheQueue.take();
+            }catch (Exception e){
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        }
+        elementCount++;
+        currentCache.add(t);
     }
 
     /**
@@ -76,6 +149,20 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
      * @param countDownLatch
      */
     public void merageAndBuildMe(final CountDownLatch countDownLatch){
+        /**
+         * 清空当前缓存队列到硬盘中,因为有两个缓存队列,一个在另外的线程中执行,所以写下面的代码出现bug 的可能性比较大
+         */
+        List<T> sortedList = quickSort.quicksort(currentCache);
+        sortedKeysInDisk.add(flushUtil.moveListDataToDisk(sortedList));
+        /**
+         * 等待排序线程被执行完
+         */
+        try {
+            keysCacheQueue.take();
+        }catch (Exception e){
+            e.printStackTrace();
+            System.exit(-1);
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -88,11 +175,15 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
                     IndexLeafNodeIterator<T> iterator = new IndexLeafNodeIterator<>(diskLocs,indexExtentManager);
                     IndexLeafNodeIterator<T> iterator1 = new IndexLeafNodeIterator<>(diskLocs1,indexExtentManager);
                     sortedKeysInDisk.add(flushUtil.mergeIterator(iterator,iterator1));
-
                 }
+                if(sortedKeysInDisk.size()<1){
+                    System.out.println("完成归并排序出现了一些bug");
+                    System.exit(-1);
+                }
+                DiskLoc diskLoc = flushUtil.buildBPlusTree(sortedKeysInDisk.poll());
+                rootIndex = indexExtentManager.getIndexLeafNodeFromDiskLocForInsert(diskLoc);
                 System.out.println("myHashCode is : " + myHashCode + "sortedKeysInDis size is " + sortedKeysInDisk.size());
                 System.out.println("我将是整个工程最消耗时间,最消耗空间,最消耗磁盘io 的一部分,请优化我!!!!");
-                System.out.println("我还没有实现,但是我可以用于测试!!!!!!!!!");
                 countDownLatch.countDown();
             }
         }).start();

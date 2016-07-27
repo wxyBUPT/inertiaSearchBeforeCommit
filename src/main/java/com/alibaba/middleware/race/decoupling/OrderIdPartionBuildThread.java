@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.decoupling;
 
 import com.alibaba.middleware.race.cache.AvlTree;
+import com.alibaba.middleware.race.codec.HashKeyHash;
 import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByOrderId;
 import com.alibaba.middleware.race.storage.IndexPartition;
 
@@ -21,16 +22,9 @@ public class OrderIdPartionBuildThread extends PartionBuildThread<ComparableKeys
     }
 
     @Override
-    protected void flushAvlToDisk() {
-        for(Map.Entry<Integer,AvlTree<ComparableKeysByOrderId>> entry:inMemoryTrees.entrySet()){
-            /**
-             * 迭代avl,并且将其刷新到disk 中,并将得到的磁盘列表位置存储到对应的partion 中去
-             */
-            myPartions.get(entry.getKey()).addSortedKeys(
-                    flushUtil.moveIteratorDataToDisk(entry.getValue().iterator())
-            );
-            entry.getValue().makeEmpty();
-        }
+    protected void putIndexToPartion(ComparableKeysByOrderId comparableKeysByOrderId) {
+        int hashCode = HashKeyHash.hashKeyHash(comparableKeysByOrderId.hashCode());
+        indexNameSpace.mOrderPartion.get(hashCode).addKey(comparableKeysByOrderId);
     }
 
     @Override
