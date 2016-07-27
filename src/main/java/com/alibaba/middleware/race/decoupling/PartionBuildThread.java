@@ -29,7 +29,6 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
      */
     protected final AtomicInteger nRemain;
 
-    protected int flushCount = 0;
     /**
      * 依旧使用flushUtil 做数据迁移,不过flushUtil 在七月26日之后需要重写
      */
@@ -44,11 +43,7 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
     /**
      * 用于记录执行一次flush 之后插入了多少数据
      */
-    private int countInsert ;
-    /**
-     * 插入 maxSizeAllowed 条数据之后就必须将数据同步到磁盘
-     */
-    private final int maxSizeAllowed;
+
     /**
      * 用于记录总的插入数量
      */
@@ -65,8 +60,6 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
      * @param sendFinishSingle
      */
     public PartionBuildThread(final AtomicInteger nRemain,CountDownLatch sendFinishSingle){
-        this.maxSizeAllowed = RaceConf.INMEMORYMAXINDEXSIZE;
-        countInsert = 0;
         totalInsertCount = 0L;
         this.nRemain = nRemain;
         flushUtil = new FlushUtil<>();
@@ -107,7 +100,6 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
     }
 
     private void insertKeys(T key){
-        countInsert++;
         totalInsertCount++;
         putIndexToPartion(key);
     }
@@ -118,4 +110,8 @@ public abstract class PartionBuildThread <T extends Comparable<? super T> & Seri
      * 在每一个Partion 中创建b+ 树
      */
     protected abstract void createBPlusTree();
+
+    public String getInfo(){
+        return "element count insert: " + totalInsertCount;
+    }
 }

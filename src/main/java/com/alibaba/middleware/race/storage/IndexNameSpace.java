@@ -38,15 +38,6 @@ public class IndexNameSpace {
         return indexNameSpace;
     }
 
-    public static DiskLoc buyerRoot;
-    public static DiskLoc goodRoot;
-
-    /**
-     * 为了每次查询减少一次磁盘访问,将rootNode 取出到内存
-     */
-    public static IndexNode<ComparableKeysByBuyerId> mBuyerRoot;
-    public static IndexNode<ComparableKeysByGoodId> mGoodRoot;
-
 
     /**
      * order 所有key 值分片管理
@@ -56,31 +47,27 @@ public class IndexNameSpace {
     public static HashMap<Integer,IndexPartition<ComparableKeysByGoodOrderId>> mGoodOrderPartions;
 
     /**
-     * 对于buyer 和 good ,在lru 中缓存叶子节点与非叶子节点
-     * 只不过非叶子节点的优先级要高于叶子节点(由lru for mindata 负责)
-     * orderLRU 由partion 负责
+     * 加入buyer 和 good
      */
-    private final LRUCache<DiskLoc,IndexNode> buyerLRU;
-    private final LRUCache<DiskLoc,IndexNode> goodLRU;
+    public static HashMap<Integer,IndexPartition<ComparableKeysByBuyerId>> mBuyer;
+    public static HashMap<Integer,IndexPartition<ComparableKeysByGoodId>> mGood;
 
-    private IndexExtentManager indexExtentManager;
-    private StoreExtentManager storeExtentManager;
 
     private IndexNameSpace(){
-        indexExtentManager = IndexExtentManager.getInstance();
-        storeExtentManager = StoreExtentManager.getInstance();
-        buyerLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_BUYER_INDEX_CACHE_COUNT);
-        goodLRU = new ConcurrentLruCacheForMidData<>(RaceConf.N_GOOD_INDEX_CACHE_COUNT);
         /**
          * 初始化partions
          */
         mOrderPartion = new HashMap<>();
         mBuyerCreateTimeOrderPartion = new HashMap<>();
         mGoodOrderPartions = new HashMap<>();
+        mBuyer = new HashMap<>();
+        mGood = new HashMap<>();
         for(int i = 0;i<RaceConf.N_PARTITION;i++){
             mOrderPartion.put(i,new IndexPartition<ComparableKeysByOrderId>(i));
             mBuyerCreateTimeOrderPartion.put(i,new IndexPartition<ComparableKeysByBuyerCreateTimeOrderId>(i));
             mGoodOrderPartions.put(i,new IndexPartition<ComparableKeysByGoodOrderId>(i));
+            mBuyer.put(i,new IndexPartition<ComparableKeysByBuyerId>(i));
+            mGood.put(i,new IndexPartition<ComparableKeysByGoodId>(i));
         }
     }
 
@@ -101,20 +88,11 @@ public class IndexNameSpace {
      */
     public Row queryGoodDataByGoodId(String goodId){
         ComparableKeysByGoodId key = new ComparableKeysByGoodId(goodId,null);
-        IndexNode<ComparableKeysByGoodId> indexNode = mGoodRoot;
-        while (!indexNode.isLeafNode()){
-            DiskLoc diskLoc = indexNode.search(key);
-            if(diskLoc==null)return null;
-            /**
-             * 从缓存中获得
-             */
-            IndexNode cacheNode = goodLRU.get(diskLoc);
-            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
-            if(cacheNode==null)goodLRU.put(diskLoc,indexNode);
-        }
-        DiskLoc diskLoc = indexNode.search(key);
-        if(diskLoc==null)return null;
-        return storeExtentManager.getRowFromDiskLoc(diskLoc);
+        /**
+         * 去顶在哪个partions
+         */
+        Integer hashCode = HashKeyHash.hashKeyHash(key.hashCode());
+        return mGood.get(hashCode).queryByKey(key);
     }
 
     /**
@@ -124,18 +102,11 @@ public class IndexNameSpace {
      */
     public Row queryBuyerDataByBuyerId(String buyerId){
         ComparableKeysByBuyerId key = new ComparableKeysByBuyerId(buyerId,null);
-        IndexNode<ComparableKeysByBuyerId> indexNode = mBuyerRoot;
-        while(!indexNode.isLeafNode()){
-            DiskLoc diskLoc = indexNode.search(key);
-            if(diskLoc==null)return null;
-
-            IndexNode cacheNode = buyerLRU.get(diskLoc);
-            indexNode = cacheNode==null?indexExtentManager.getIndexNodeFromDiskLoc(diskLoc):cacheNode;
-            if(cacheNode==null)buyerLRU.put(diskLoc,indexNode);
-        }
-        DiskLoc diskLoc = indexNode.search(key);
-        if(diskLoc==null)return null;
-        return storeExtentManager.getRowFromDiskLoc(diskLoc);
+        /**
+         * 确定在哪个partions
+         */
+        Integer hashCode = HashKeyHash.hashKeyHash(key.hashCode());
+        return mBuyer.get(hashCode).queryByKey(key);
     }
 
     /**
@@ -187,9 +158,7 @@ public class IndexNameSpace {
      */
     public String getInfo(){
         StringBuilder sb = new StringBuilder();
-        sb.append("buyerLRU  ###  size : " + buyerLRU.size() + ", limit: "+buyerLRU.getLimit());
-        sb.append("goodLRU  ### size: " + goodLRU.size() + ", limit: " + goodLRU.getLimit());
-        sb.append(", partion info : " + " null ");
+        sb.append(", partion info : " + " now is ");
         return sb.toString();
     }
 

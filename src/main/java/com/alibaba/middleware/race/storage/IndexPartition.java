@@ -116,8 +116,9 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         /**
          * 如果当前缓存元素个数满
          */
-        //if(elementCount>=1600){
+        //if(elementCount>=802){
         if(elementCount>=RaceConf.PARTITION_CACHE_COUNT){
+            LOG.info("Put keys to disk, currentCache size is  " + currentCache.size());
             /**
              * 对当前的元素执行快排
              */
@@ -152,7 +153,6 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
             /**
              * 上面代码是启动线程,下面代码如果当前队列中两个缓存队列都不可用,会被阻塞
              */
-
         }
         elementCount++;
         currentCache.add(t);

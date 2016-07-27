@@ -113,13 +113,6 @@ public abstract class BuildThread<T extends Comparable<? super T> & Serializable
         inMemoryTree.insert(key);
     }
 
-    private void forTest(){
-        IndexLeafNodeIterator<T> iterator = new IndexLeafNodeIterator<>(sortedKeysInDisk,IndexExtentManager.getInstance());
-        while (iterator.hasNext()){
-            printRawData(iterator.next());
-        }
-    }
-
     abstract protected void printRawData(T t);
 
     protected abstract void createBPlusTree();

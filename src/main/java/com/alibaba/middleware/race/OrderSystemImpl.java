@@ -190,9 +190,9 @@ public class OrderSystemImpl implements OrderSystem {
          * 七个创建索引线程
          */
 
-        new Thread(new BuildBuyerIdThread(nBuyerRemain,indexDoneSignal)).start();
+        new Thread(new BuyerPartionBuildThread(nBuyerRemain,indexDoneSignal)).start();
         new Thread(new BuyerTimeOrderPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
-        new Thread(new BuildGoodIdThread(nGoodRemain,indexDoneSignal)).start();
+        new Thread(new GoodPartionBuildThread(nGoodRemain,indexDoneSignal)).start();
         new Thread(new GoodOrderPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
         new Thread(new OrderIdPartionBuildThread(nOrderRemain,indexDoneSignal)).start();
         /**
@@ -507,7 +507,7 @@ public class OrderSystemImpl implements OrderSystem {
 
         // 用例
         if(RaceConf.debug) {
-            if(1+1!=2) {
+            if(1+1!=3) {
                 System.out.println("这些事测试用例");
                 long orderid = 2982388;
                 System.out.println("\n查询订单号为" + orderid + "的订单");
@@ -564,7 +564,7 @@ public class OrderSystemImpl implements OrderSystem {
             System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
             System.out.println(os.sumOrdersByGood(goodid, attr));
 
-            if(1+1!=2) {
+            if(1+1!=3) {
                 attr = "done";
                 System.out.println("\n对商品id为" + goodid + "的 " + attr + "字段求和");
                 KeyValue sum = os.sumOrdersByGood(goodid, attr);
