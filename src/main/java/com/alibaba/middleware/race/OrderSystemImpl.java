@@ -6,6 +6,7 @@ import com.alibaba.middleware.race.models.Row;
 import com.alibaba.middleware.race.models.RowKV;
 import com.alibaba.middleware.race.models.comparableKeys.*;
 import com.alibaba.middleware.race.storage.*;
+import com.sun.javafx.tools.packager.Log;
 
 import java.io.*;
 import java.util.*;
@@ -108,11 +109,18 @@ public class OrderSystemImpl implements OrderSystem {
          */
 
         final FileManager fileManager = FileManager.getInstance(storeFolders, nameSpace);
-        Collection<Collection<String>> splitedOrderFiles = spliter(orderFiles, 3);
-        Collection<Collection<String>> splitedBuyerFiles = spliter(buyerFiles, 3);
-        Collection<Collection<String>> splitedGoodFiles = spliter(goodFiles, 3);
-        int nThread = splitedBuyerFiles.size() + splitedGoodFiles.size() + splitedOrderFiles.size();
-        LOG.info("There will be " + nThread + "fileWriter threads");
+        /**
+         * 将文件按照不同的存储目录区分
+         */
+        final Vector<Collection<String>> splitedOrderFiles = spliter(orderFiles, storeFolders);
+        final Vector<Collection<String>> splitedBuyerFiles = spliter(buyerFiles, storeFolders);
+        final Vector<Collection<String>> splitedGoodFiles = spliter(goodFiles, storeFolders);
+
+        /**
+         * 启动三个线程,每一个线程负责处理一类文件
+         */
+
+        int nThread = 3;
 
         /**
          * IndexExtentManager is a singleton , init it use paramter
@@ -120,68 +128,46 @@ public class OrderSystemImpl implements OrderSystem {
         IndexExtentManager.getInstance();
         FileManager.getInstance(storeFolders,nameSpace);
         indexNameSpace = IndexNameSpace.getInstance();
+
         /**
          * set countdownlatch,wait all file read finish
          */
         final CountDownLatch doneSignal = new CountDownLatch(nThread);
 
-        final AtomicInteger nOrderRemain = new AtomicInteger(0);
-        final AtomicInteger nGoodRemain = new AtomicInteger(0);
-        final AtomicInteger nBuyerRemain = new AtomicInteger(0);
+        final AtomicInteger nOrderRemain = new AtomicInteger(3);
+        final AtomicInteger nGoodRemain = new AtomicInteger(3);
+        final AtomicInteger nBuyerRemain = new AtomicInteger(3);
 
-        /**
-         * nThread 个将原始数据写入磁盘的线程
-         */
-        for (final Collection<String> files : splitedOrderFiles) {
-            nOrderRemain.incrementAndGet();
+        for(int i = 0;i<storeFolders.size();i++){
+            final Collection<String> buyerFilesforInsert = splitedBuyerFiles.get(i);
+            final Collection<String> goodFilesforInsert = splitedGoodFiles.get(i);
+            final Collection<String> orderFilesforInsert = splitedOrderFiles.get(i);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        new OrderFileHandler().handle(files);
-                    } catch (Exception e) {
+
+                        new BuyerFileHandler().handle(buyerFilesforInsert);
+                        nBuyerRemain.decrementAndGet();
+
+                        new GoodFileHandler().handle(goodFilesforInsert);
+                        nGoodRemain.decrementAndGet();
+
+                        new OrderFileHandler().handle(orderFilesforInsert);
+                        nOrderRemain.decrementAndGet();
+
+                        /**
+                         * 三类文件都处理完毕
+                         */
+                        doneSignal.countDown();
+
+                    }catch (Exception e){
                         e.printStackTrace();
                     }
-                    nOrderRemain.decrementAndGet();
-                    doneSignal.countDown();
                 }
             }).start();
-            LOG.info("new orderFiles writer have started");
         }
 
-        for (final Collection<String> files : splitedBuyerFiles) {
-            nBuyerRemain.incrementAndGet();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        new BuyerFileHandler().handle(files );
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    nBuyerRemain.decrementAndGet();
-                    doneSignal.countDown();
-                }
-            }).start();
-            LOG.info("new buyerFiles writer have started");
-        }
-
-        for (final Collection<String> files : splitedGoodFiles) {
-            nGoodRemain.incrementAndGet();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        new GoodFileHandler().handle(files);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    nGoodRemain.decrementAndGet();
-                    doneSignal.countDown();
-                }
-            }).start();
-            LOG.info("new goodFiles writer have started");
-        }
         /**
          * 五个创建索引线程
          */
@@ -287,27 +273,24 @@ public class OrderSystemImpl implements OrderSystem {
         }
     }
 
+
     /**
-     * 将一个collections 分成多个collections,每个collection 中至少有n 个元素
-     *
+     * 将文件按照不同的disk 分类
      * @param files
-     * @param n
+     * @param storeFolders
      * @return
      */
-    private Collection<Collection<String>> spliter(Collection<String> files, int n) {
-        Collection<Collection<String>> res = new ArrayList<>();
-        Collection<String> item = new ArrayList<>();
-        int count = 0;
-        for (String file : files) {
-            item.add(file);
-            count++;
-            if (count == n) {
-                res.add(item);
-                item = new ArrayList<>();
-                count = 0;
+    private Vector<Collection<String>> spliter(Collection<String> files, final Collection<String> storeFolders) {
+        Vector<Collection<String>> res = new Vector<>();
+        for(String storeFolder:storeFolders){
+            Collection<String> currentFiles = new ArrayList<>();
+            for(String file:files){
+                if(file.startsWith(storeFolder)){
+                    currentFiles.add(file);
+                }
             }
+            res.add(currentFiles);
         }
-        if (item.size() != 0) res.add(item);
         return res;
     }
 
@@ -478,20 +461,20 @@ public class OrderSystemImpl implements OrderSystem {
         List<String> goodFiles = new ArrayList<>();
         List<String> storeFolders = new ArrayList<>();
 
-        orderFiles.add("order_records.txt");
-        buyerFiles.add("buyer_records.txt");
-        goodFiles.add("good_records.txt");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.0");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.1.1");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.2.2");
-        orderFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/order.0.3");
+        orderFiles.add("./dir1/order_records.txt");
+        buyerFiles.add("./dir2/buyer_records.txt");
+        goodFiles.add("./dir0/good_records.txt");
+        orderFiles.add("./dir0/order.0.0");
+        orderFiles.add("./dir1/order.1.1");
+        orderFiles.add("./dir2/order.2.2");
+        orderFiles.add("./dir0/order.0.3");
 
-        buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.0.0");
-        buyerFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/buyer.1.1");
+        buyerFiles.add("./dir0/buyer.0.0");
+        buyerFiles.add("./dir1/buyer.1.1");
 
-        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.0.0");
-        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.1.1");
-        goodFiles.add("/Users/xiyuanbupt/Downloads/prerun_data/good.2.2");
+        goodFiles.add("./dir0/good.0.0");
+        goodFiles.add("./dir1/good.1.1");
+        goodFiles.add("./dir2/good.2.2");
         storeFolders.add("./dir0/");
         storeFolders.add("./dir1/");
         storeFolders.add("./dir2/");
@@ -635,21 +618,11 @@ class GoodFileHandler extends DataFileHandler{
         /**
          * Find goodid and salerid
          */
+        int i = line.indexOf("goodid:");
+        line = line.substring(i+7);
+        i = line.indexOf("\t");
+        String goodid = line.substring(0,i);
 
-        String[] kvs = line.split("\t");
-        String goodid = null;
-        for(String kv: kvs){
-            int p = kv.indexOf(':');
-            String key = kv.substring(0, p);
-            String value = kv.substring(p + 1);
-            if (key.length() == 0 || value.length() == 0) {
-                throw new RuntimeException("Bad data:" + line);
-            }
-            if(key.equals("goodid")){
-                goodid = value;
-                break;
-            }
-        }
         if(goodid==null ){
             throw new RuntimeException("Bad data! goodid " + goodid  );
         }
@@ -675,24 +648,11 @@ class BuyerFileHandler extends DataFileHandler{
         byte[] bytes = line.getBytes("UTF-8");
         DiskLoc diskLoc = storeExtentManager.putBytes(bytes);
         diskLoc.setStoreType(StoreType.BUYERLINE);
-        String[] kvs = line.split("\t");
 
-        /**
-         * Find buyerid
-         */
-        String buyerid = null;
-        for(String kv: kvs){
-            int p = kv.indexOf(':');
-            String key = kv.substring(0, p);
-            String value = kv.substring(p + 1);
-            if (key.length() == 0 || value.length() == 0) {
-                throw new RuntimeException("Bad data:" + line);
-            }
-            if(key.compareTo("buyerid")==0){
-                buyerid = value;
-                break;
-            }
-        }
+        int i = line.indexOf("buyerid:");
+        line = line.substring(i+8);
+        i = line.indexOf("\t");
+        String buyerid = line.substring(0,i);
         /**
          * Put index info to queue
          */
@@ -718,55 +678,28 @@ class OrderFileHandler extends DataFileHandler{
         byte[] bytes = line.getBytes("UTF-8");
         DiskLoc diskLoc = storeExtentManager.putBytes(bytes);
         diskLoc.setStoreType(StoreType.ORDERLINE);
-        String[] kvs = line.split("\t");
-        /**
-         * Find goodid and salerid
-         */
-        Long orderid= null;
-        String buyerid = null;
-        boolean shouldBreak = false;
-        Long createtime = null;
-        String goodid = null;
+        int i = line.indexOf("orderid:");
+        String tmp = line.substring(i+8);
+        i = tmp.indexOf("\t");
+        String orderidStr = tmp.substring(0,i);
+        Long orderid= Long.parseLong(orderidStr);
 
-        for(String kv:kvs){
-            int p = kv.indexOf(':');
-            String key = kv.substring(0, p);
-            String value = kv.substring(p + 1);
-            if (key.length() == 0 || value.length() == 0) {
-                throw new RuntimeException("Bad data:" + line);
-            }
-            switch (key){
-                case "orderid":
-                    orderid = Long.parseLong(value);
-                    if(buyerid!=null&&createtime!=null&&goodid!=null){
-                        shouldBreak = true;
-                    }
-                    break;
-                case "buyerid":
-                    buyerid = value;
-                    if(orderid!=null &&createtime!=null&&goodid!=null){
-                        shouldBreak = true;
-                    }
-                    break;
-                case "createtime":
-                    createtime = Long.parseLong(value);
-                    if(orderid!=null && buyerid!=null&&goodid!=null){
-                        shouldBreak = true;
-                    }
-                    break;
-                case "goodid":
-                    goodid = value;
-                    if(orderid!=null && buyerid!=null&&createtime!=null){
-                        shouldBreak = true;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if(shouldBreak){
-                break;
-            }
-        }
+        i = line.indexOf("goodid:");
+        tmp = line.substring(i+7);
+        i = tmp.indexOf("\t");
+        String goodid = tmp.substring(0,i);
+
+        i = line.indexOf("buyerid:");
+        tmp = line.substring(i+8);
+        i = tmp.indexOf("\t");
+        String buyerid = tmp.substring(0,i);
+
+        i = line.indexOf("createtime:");
+        tmp = line.substring(i+11);
+        i = tmp.indexOf("\t");
+        String createtimeStr = tmp.substring(0,i);
+        Long createtime = Long.parseLong(createtimeStr);
+
         ComparableKeysByOrderId orderIdKeys = new ComparableKeysByOrderId(orderid,diskLoc);
         DiskLocQueues.comparableKeysByOrderId.put(orderIdKeys);
 
