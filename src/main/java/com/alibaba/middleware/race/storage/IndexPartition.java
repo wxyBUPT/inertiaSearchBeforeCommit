@@ -47,7 +47,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
      * 两个用于和底层db 交互的代理
      */
     private IndexExtentManager indexExtentManager;
-    private StoreExtentManager storeExtentManager;
+    private OriginalExtentManager originalExtentManager;
 
     private FlushUtil<T> flushUtil;
 
@@ -86,7 +86,8 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
      */
     public IndexPartition(int myHashCode){
         indexExtentManager = IndexExtentManager.getInstance();
-        storeExtentManager = StoreExtentManager.getInstance();
+        originalExtentManager = OriginalExtentManager.getInstance();
+
         this.myHashCode = myHashCode;
         this.sortedKeysInDisk = new LinkedList<>();
         /**
@@ -225,7 +226,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
         }
         DiskLoc diskLoc = indexNode.search(t);
         if(diskLoc==null)return null;
-        return storeExtentManager.getRowFromDiskLoc(diskLoc);
+        return originalExtentManager.getRowFromDiskLoc(diskLoc);
     }
 
     public Deque<Row> rangeQuery(T startKey,T endKey) {
@@ -254,7 +255,7 @@ public class IndexPartition<T extends Comparable<? super T> & Serializable & Ind
                 Queue<DiskLoc> diskLocs = node.searchBetween(minKey,maxKey);
                 DiskLoc diskLoc = diskLocs.poll();
                 while(diskLoc!=null){
-                    Row row = storeExtentManager.getRowFromDiskLoc(diskLoc);
+                    Row row = originalExtentManager.getRowFromDiskLoc(diskLoc);
                     result.add(row);
                     diskLoc = diskLocs.poll();
                 }

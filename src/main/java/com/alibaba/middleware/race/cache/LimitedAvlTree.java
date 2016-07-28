@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race.cache;
 
-import java.util.Iterator;
-
 /**
  * Created by xiyuanbupt on 7/19/16.
  */

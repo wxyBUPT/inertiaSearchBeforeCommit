@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race.decoupling;
 
-import com.alibaba.middleware.race.cache.AvlTree;
-import com.alibaba.middleware.race.cache.BinarySearchTree;
 import com.alibaba.middleware.race.cache.LimitedAvlTree;
 import com.alibaba.middleware.race.storage.*;
 

@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.cache;
 
-import com.alibaba.middleware.race.models.comparableKeys.ComparableKeysByBuyerCreateTimeOrderId;
 
 /**
  * Created by xiyuanbupt on 7/25/16.
