@@ -48,7 +48,7 @@ public class OrderSystemImpl implements OrderSystem {
                 public void run() {
                     while (true) {
                         try {
-                            Thread.sleep(5000);
+                            Thread.sleep(50000);
                         } catch (Exception e) {
                         }
                         logStatus();
@@ -56,40 +56,6 @@ public class OrderSystemImpl implements OrderSystem {
                 }
             }).start();
         }
-    }
-
-    private void logStatus(){
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryOrderBySalerCount is : " ).append(queryOrderBySalerCount);
-        sb.append(",  queryOrderByBuyerCount is : " ).append(queryOrderByBuyerCount);
-        sb.append(",  queryOrderCount is : "  ).append(queryOrderCount);
-        sb.append(",  queryOrderByGoodCount is : ").append(queryOrderByGoodCount);
-        LOG.info(sb.toString());
-        LOG.info(DiskLocQueues.getInfo());
-
-        sb.setLength(0);
-                          /* Total number of processors or cores available to the JVM */
-        sb.append("Available processors (cores): " +
-                Runtime.getRuntime().availableProcessors());
-
-  /* Total amount of free memory available to the JVM */
-        sb.append(",  Free memory (Mbytes): " +
-                Runtime.getRuntime().freeMemory()/1024L/1024L);
-
-  /* This will return Long.MAX_VALUE if there is no preset limit */
-        long maxMemory = Runtime.getRuntime().maxMemory();
-  /* Maximum amount of memory the JVM will attempt to use */
-        sb.append(",  Maximum memory (Mbytes): " +
-                (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory/1024L/1024L));
-
-  /* Total memory currently in use by the JVM */
-        sb.append(",  Total memory (Mbytes): " +
-                Runtime.getRuntime().totalMemory()/1024L/1024L);
-        LOG.info(sb.toString());
-        /**
-         * Get LRU cache status
-         */
-        LOG.info(indexNameSpace.getInfo());
     }
 
     /**
@@ -139,9 +105,14 @@ public class OrderSystemImpl implements OrderSystem {
         final AtomicInteger nBuyerRemain = new AtomicInteger(3);
 
         for(int i = 0;i<storeFolders.size();i++){
+            StringBuilder sb = new StringBuilder();
             final Collection<String> buyerFilesforInsert = splitedBuyerFiles.get(i);
+            sb.append("BuyerFiles: ").append(buyerFilesforInsert).append(", ");
             final Collection<String> goodFilesforInsert = splitedGoodFiles.get(i);
             final Collection<String> orderFilesforInsert = splitedOrderFiles.get(i);
+            sb.append("GoodFIles: ").append(goodFilesforInsert).append(", ");
+            sb.append("OrderFiles: ").append(orderFilesforInsert).append(", handled in this thread");
+            LOG.info(sb.toString());
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -283,6 +254,8 @@ public class OrderSystemImpl implements OrderSystem {
     private Vector<Collection<String>> spliter(Collection<String> files, final Collection<String> storeFolders) {
         Vector<Collection<String>> res = new Vector<>();
         for(String storeFolder:storeFolders){
+            String[] disks = storeFolder.split("/");
+            storeFolder = "/" + disks[1];
             Collection<String> currentFiles = new ArrayList<>();
             for(String file:files){
                 if(file.startsWith(storeFolder)){
@@ -461,23 +434,23 @@ public class OrderSystemImpl implements OrderSystem {
         List<String> goodFiles = new ArrayList<>();
         List<String> storeFolders = new ArrayList<>();
 
-        orderFiles.add("./dir1/order_records.txt");
-        buyerFiles.add("./dir2/buyer_records.txt");
-        goodFiles.add("./dir0/good_records.txt");
-        orderFiles.add("./dir0/order.0.0");
-        orderFiles.add("./dir1/order.1.1");
-        orderFiles.add("./dir2/order.2.2");
-        orderFiles.add("./dir0/order.0.3");
+        orderFiles.add("/dir1/orders/order_records.txt");
+        buyerFiles.add("/dir2/buyers/buyer_records.txt");
+        goodFiles.add("/dir0/goods/good_records.txt");
+        orderFiles.add("/dir0/orders/order.0.0");
+        orderFiles.add("/dir1/orders/order.1.1");
+        orderFiles.add("/dir2/orders/order.2.2");
+        orderFiles.add("/dir0/orders/order.0.3");
 
-        buyerFiles.add("./dir0/buyer.0.0");
-        buyerFiles.add("./dir1/buyer.1.1");
+        buyerFiles.add("/dir0/buyers/buyer.0.0");
+        buyerFiles.add("/dir1/buyers/buyer.1.1");
 
-        goodFiles.add("./dir0/good.0.0");
-        goodFiles.add("./dir1/good.1.1");
-        goodFiles.add("./dir2/good.2.2");
-        storeFolders.add("./dir0/");
-        storeFolders.add("./dir1/");
-        storeFolders.add("./dir2/");
+        goodFiles.add("/dir0/goods/good.0.0");
+        goodFiles.add("/dir1/goods/good.1.1");
+        goodFiles.add("/dir2/goods/good.2.2");
+        storeFolders.add("/dir0/stores/");
+        storeFolders.add("/dir1/stores/");
+        storeFolders.add("/dir2/stores/");
 
         OrderSystem os = new OrderSystemImpl();
         os.construct(orderFiles, buyerFiles, goodFiles, storeFolders);
@@ -562,6 +535,37 @@ public class OrderSystemImpl implements OrderSystem {
                 }
             }
         }
+    }
+    private void logStatus(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("queryOrderBySalerCount is : " ).append(queryOrderBySalerCount);
+        sb.append(",  queryOrderByBuyerCount is : " ).append(queryOrderByBuyerCount);
+        sb.append(",  queryOrderCount is : "  ).append(queryOrderCount);
+        sb.append(",  queryOrderByGoodCount is : ").append(queryOrderByGoodCount);
+        LOG.info(sb.toString());
+        LOG.info(DiskLocQueues.getInfo());
+
+        sb.setLength(0);
+                          /* Total number of processors or cores available to the JVM */
+        sb.append("Available processors (cores): " +
+                Runtime.getRuntime().availableProcessors());
+        /* Total amount of free memory available to the JVM */
+        sb.append(",  Free memory (Mbytes): " +
+                Runtime.getRuntime().freeMemory()/1024L/1024L);
+
+        /* This will return Long.MAX_VALUE if there is no preset limit */
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        /* Maximum amount of memory the JVM will attempt to use */
+        sb.append(",  Maximum memory (Mbytes): " +
+                (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory/1024L/1024L));
+        /* Total memory currently in use by the JVM */
+        sb.append(",  Total memory (Mbytes): " +
+                Runtime.getRuntime().totalMemory()/1024L/1024L);
+        LOG.info(sb.toString());
+        /**
+         * Get LRU cache status
+         */
+        LOG.info(indexNameSpace.getInfo());
     }
 }
 

@@ -6,11 +6,14 @@ import com.alibaba.middleware.race.storage.*;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
  * Created by xiyuanbupt on 7/28/16.
  */
 public abstract class DataFileHandler{
+
+    private static final Logger LOG = Logger.getLogger(DataFileHandler.class.getName());
 
 
     protected OriginalExtentManager originalExtentManager;
@@ -19,6 +22,7 @@ public abstract class DataFileHandler{
     public void handle(Collection<String> files) throws InterruptedException,IOException,OrderSystem.TypeException{
         this.originalExtentManager= OriginalExtentManager.getInstance();
         for(String file:files) {
+            LOG.info("Start handle file: " + file);
             handleFile(file);
         }
     }
@@ -95,7 +99,5 @@ public abstract class DataFileHandler{
             e.printStackTrace();
             System.exit(-1);
         }
-
-
     }
 }
